@@ -1,0 +1,506 @@
+% =============================================================================
+% 11_backup.tex -- Backup Slides (~5-10 frames)
+% =============================================================================
+
+\section{Backup}
+
+% ---- Backup 1 ----
+\begin{frame}{Acquisition Parameters (Detail)}
+
+  \small
+
+  \textbf{T1w:} 3D MPRAGE, 1\,mm isotropic,
+  $176 \times 256 \times 256$, TI $= 900$\,ms
+
+  \bigskip
+
+  \textbf{DWI:} Multi-shell EPI, 2.5\,mm isotropic,
+  $b = 700,\, 1000,\, 2000$\,s/mm$^2$,
+  AP and PA phase encoding
+
+  \bigskip
+
+  \textbf{BOLD:} EPI, 3\,mm isotropic,
+  TR $= 1.7$\,s, resting state ($\sim$7\,min)
+
+  \bigskip
+
+  \textbf{Scanner:} Siemens Prisma 3\,T, Haukeland/UZ Gent
+
+  \bigskip
+
+  \textit{Ref:} Aerts et al.\ (2022) \cite{Aerts2022}
+
+\end{frame}
+
+% ---- Backup 2 ----
+\begin{frame}{Software Versions}
+
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Tool} & \textbf{Version} & \textbf{Environment} \\
+    \midrule
+    FreeSurfer & 8.1.0 & System \\
+    fMRIPrep & 25.x & \texttt{cas-fmriprep} conda env \\
+    QSIPrep & 1.x & \texttt{cas-qsiprep} conda env \\
+    MRtrix3 & 3.x & \texttt{cas-workshop} conda env \\
+    ANTs & 2.5.x & \texttt{cas-workshop} conda env \\
+    FSL & 6.x & \texttt{cas-workshop} conda env \\
+    FEniCSx & 0.9.x & \texttt{cas-fenics} conda env \\
+    Python & 3.12 & All environments \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  Platform: Apple Silicon (M4 Max, 128\,GB) -- native ARM64,
+  no Docker/Rosetta.
+
+\end{frame}
+
+% ---- Backup 3 ----
+\begin{frame}{Pipeline Timing}
+
+  \begin{tabular}{llr}
+    \toprule
+    \textbf{Step} & \textbf{Tool} & \textbf{Time (per session)} \\
+    \midrule
+    1. FreeSurfer & \texttt{recon-all} & $\sim$2--6\,h \\
+    1c. FreeSurfer & \texttt{recon-all-clinical} & $\sim$30\,min \\
+    2. fMRIPrep & BOLD preprocessing & $\sim$25\,min \\
+    3. QSIPrep & DWI preprocessing & $\sim$5\,h \\
+    4. MRtrix3 & CSD + tractography & $\sim$1--2\,h \\
+    5. Co-registration & FSL + ANTs + MRtrix3 & $\sim$1\,min \\
+    5b. Longitudinal & ANTs SyN + RESSEG & $\sim$30--90\,min \\
+    6. Comparison & Python & $\sim$5\,min \\
+    7. SC matrix & \texttt{compute\_tvb\_connectome.py} & $\sim$2\,min \\
+    8. FC matrix & \texttt{compute\_fc.py} & $\sim$1\,min \\
+    9. rsHRF & \texttt{compute\_rshrf.py} & $\sim$5--15\,min \\
+    \bottomrule
+  \end{tabular}
+
+\end{frame}
+
+% ---- Backup 4 ----
+\begin{frame}{FreeSurfer: Standard vs.\ Clinical}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \textbf{\texttt{recon-all} (standard):}
+    \begin{itemize}
+      \item Atlas-based segmentation
+      \item Cortical surface reconstruction
+      \item Cortical thickness, curvature
+      \item Assumes normal anatomy
+      \item $\sim$6\,h runtime
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    \textbf{\texttt{recon-all-clinical}:}
+    \begin{itemize}
+      \item SynthSeg (DL-based)
+      \item Robust to pathological anatomy
+      \item No surface reconstruction
+      \item No cortical thickness
+      \item $\sim$30\,min runtime
+    \end{itemize}
+  \end{columns}
+
+  \bigskip
+
+  \textbf{Strategy:} standard for pre-op (cortical thickness needed),
+  clinical for post-op (cavity breaks surface reconstruction).
+
+\end{frame}
+
+% ---- Backup 5 ----
+\begin{frame}{Cavity Masking: Tier 1 (Tumor-Prior) Algorithm}
+
+  \textbf{Tumor-prior method} (default, most reliable):
+
+  \begin{enumerate}
+    \item Load pre-op probabilistic tumor mask (Aerts et al.)
+    \item Resample into post-op T1w space via
+      \texttt{nibabel.processing.resample\_from\_to}
+    \item Threshold at $p > 0.5$ $\to$ binary cavity seed
+    \item Morphological cleanup (closing + largest component)
+    \item Invert: $\text{mask}_{\text{ANTs}} = 1 - \text{cavity}$
+  \end{enumerate}
+
+  \medskip
+
+  Pass to ANTs via \texttt{-x mask\_inv.nii.gz} so the surgical void
+  is excluded from the cross-correlation cost function.
+
+  \medskip
+
+  \textbf{Why not the alternatives?}
+  \begin{itemize}
+    \item SynthSeg difference (Tier~2): pre-op and post-op
+      \texttt{aparc+aseg} have different grid sizes
+      ($256^3$ vs $171\times266\times266$) and label conventions
+      $\to$ produces $\sim$550\,cm$^3$ (half the brain)
+    \item RESSEG (Tier~3): mislocalized by $\sim$50\,mm on
+      sub-PAT16 (non-enhancing glioma, atypical for training data)
+  \end{itemize}
+
+  \medskip
+
+  \textbf{Cache invalidation:} \texttt{.cavity\_method} file tracks
+  the active tier.  Switching clears the mask \emph{and} all 21
+  downstream outputs.
+
+\end{frame}
+
+% ---- Backup 5b ----
+\begin{frame}{Tumor Volume: Official vs.\ Pipeline}
+
+  \textbf{Official} (Aerts et al.\ eNeuro 2018, Table~1):
+  ``lesion volume was calculated as the number of 1-mm$^3$ isotropic
+  voxels in the tumor mask drawn on the anatomic T1 image''
+  $\to$ \textbf{50.24\,cm$^3$} (pre-smoothing binary count).
+
+  \medskip
+
+  \textbf{What we have:} post-smoothing probabilistic masks
+  (Gaussian $\sigma = 3$\,mm).
+
+  \medskip
+
+  \begin{tabular}{lrr}
+    \toprule
+    \textbf{Method} & \textbf{Volume} & \textbf{vs.\ official} \\
+    \midrule
+    Official (pre-smoothing binary)   & 50.24\,cm$^3$ & -- \\
+    Probabilistic, $p > 0.1$          & 50.2\,cm$^3$  & $-0.08\%$ \\
+    Probabilistic, $p > 0.5$          & 45.4\,cm$^3$  & $-9.6\%$ \\
+    Binary ($p > 0.5$ + cleanup)      & 45.4\,cm$^3$  & $-9.6\%$ \\
+    TumorSynth (T1w-only)             & 53.3\,cm$^3$  & $+6.1\%$ \\
+    \bottomrule
+  \end{tabular}
+
+  \medskip
+
+  The $\sim$10\% discrepancy at $p > 0.5$ is explained by Gaussian
+  smoothing: probability mass is redistributed from interior to
+  boundary, eroding the isosurface by $\sim$3\,mm.
+  The near-exact match at $p > 0.1$ confirms probability mass
+  conservation.
+
+  \medskip
+
+  Inter-rater variability in manual glioma segmentation is typically
+  10--25\% \cite{Menze2015}, so $-9.6\%$ is well within normal range.
+
+\end{frame}
+
+% ---- Backup 6 ----
+\begin{frame}{Constitutive Model: Implementation in UFL}
+
+  \small
+
+  \textbf{Strain energy (neo-Hookean + Holzapfel fiber term):}
+
+  \[
+    W = \underbrace{\frac{\mu}{2}(\bar{I}_1 - 3)
+      + \frac{\kappa}{2}(J-1)^2}_{\text{isotropic (all tissues)}}
+      + \underbrace{\frac{k_1}{2k_2}\left[
+        e^{k_2\langle I_4 - 1\rangle^2} - 1
+      \right]}_{\text{fiber (WM only)}}
+  \]
+
+  \begin{itemize}
+    \item $\bar{I}_1 = J^{-2/3}\,\text{tr}(\bfC)$ -- isochoric invariant
+    \item $I_4 = \bfa_0 \cdot \bfC\,\bfa_0$ -- fiber stretch invariant
+    \item $\langle \cdot \rangle$ -- Macaulay bracket (tension only)
+    \item $k_1 = k_{1,\text{base}} \times \text{FA}/0.5$ -- FA-modulated
+    \item $k_2 = 5$ -- exponential stiffening parameter
+  \end{itemize}
+
+\end{frame}
+
+% ---- Backup 7 ----
+\begin{frame}{Healthy Volunteer Results: Isotropic vs.\ Anisotropic}
+
+  From the companion project (single healthy subject):
+
+  \bigskip
+
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Metric} & \textbf{Anisotropic} & \textbf{Isotropic} &
+      \textbf{Diff.} \\
+    \midrule
+    Max $|\bfu|$ (mm)  & 0.641 & 0.645 & $-0.69\%$ \\
+    Mean $|\bfu|$ (mm) & 0.212 & 0.213 & $-0.12\%$ \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  Effect is small ($<1\%$) at physiological gravity strains.\\
+  Exponential fiber stiffening engages at larger deformations
+  ($\epsilon > 10\%$).
+
+  \bigskip
+
+  \alert{Glioma surgery:} deformations of 10--20\,mm $\Rightarrow$
+  anisotropy effect expected to be much larger.
+
+\end{frame}
+
+% ---- Backup 8 ----
+\begin{frame}{Notebook Overview}
+
+  \small
+
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{NB} & \textbf{Topic} & \textbf{Track} \\
+    \midrule
+    NB00--NB03 & Data, sMRI, dMRI, fMRI exploration & A (didactic) \\
+    NB04--NB06 & FC, SC, tumor impact (TVB-based) & A (didactic) \\
+    NB07--NB08 & Brain mechanics, digital twin concept & A (didactic) \\
+    \midrule
+    NB09 & Pipeline overview & B (pipeline) \\
+    NB10--NB13 & QC per pipeline step & B (pipeline) \\
+    NB14 & Pre-op vs post-op comparison & B (pipeline) \\
+    NB15--NB17 & Pipeline-derived FC, SC, longitudinal & B (pipeline) \\
+    \bottomrule
+  \end{tabular}
+
+\end{frame}
+
+% ---- Backup 9 ----
+\begin{frame}[fragile]{Reproducing Freeview QC Figures}
+
+  \small
+
+  All QC figures from this slide deck can be reproduced with:
+
+  \begin{lstlisting}
+# Overlay mode (interactive)
+bash scripts/freeview_tumor_vs_cavity.sh \
+    --subject PAT16 --overlay
+
+# Screenshot mode (saves PNG)
+bash scripts/freeview_tumor_vs_cavity.sh \
+    --subject PAT16 \
+    --screenshot figures/qc_tumor_vs_cavity_PAT16.png
+  \end{lstlisting}
+
+  The script reads \texttt{.cavity\_method} to set the correct
+  Freeview display name (\texttt{cavity\_tumor\_prior},
+  \texttt{cavity\_resseg}, or \texttt{cavity\_synthseg}).
+
+  \medskip
+
+  \textbf{Layers shown:}
+  \begin{itemize}
+    \item \texttt{T1w\_postop} -- post-op anatomy (grayscale base)
+    \item \texttt{cavity\_tumor\_prior} -- cavity mask (green/red,
+      $\alpha = 0.4$)
+    \item \texttt{tumor\_preop\_warped} -- pre-op tumor warped to
+      post-op (heat, $\alpha = 0.4$; affine-only, no SyN near cavity)
+  \end{itemize}
+
+  QC pass: both masks co-localize at $(30, 37, {-}3)$\,mm
+  with sub-millimeter agreement.
+
+\end{frame}
+
+% ---- Backup 10 ----
+\begin{frame}{FEniCSx Simulation: Pipeline and Results}
+
+  \small
+
+  \textbf{Pipeline:}\quad
+  \texttt{aparc+aseg} $\xrightarrow{\text{remap}}$
+  5~tissue classes $\xrightarrow{\text{marching cubes}}$
+  surface $\xrightarrow{\text{Gmsh}}$
+  192k tets $\xrightarrow{\text{DTI}}$
+  $\lambda(\bfx), \mu(\bfx)$ $\xrightarrow{\text{FEniCSx}}$
+  $\bfu(\bfx)$
+
+  \medskip
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \textbf{Mesh \& solver:}
+    \begin{itemize}\setlength\itemsep{1pt}
+      \item 45,324 nodes, 191,772 tets (coarse)
+      \item P1 vector space: 131,499 DOFs
+      \item CG + GAMG, solve in \alert{2.9\,s}
+      \item BC: $\bfu = 0$ on all exterior facets
+      \item Body force: $\rho(\bfx) \, \bfg$
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    \textbf{Material (DTI-informed):}
+    \begin{itemize}\setlength\itemsep{1pt}
+      \item $E(\bfx) = E_{\text{base}} (1 + 0.8 \cdot \text{FA})$
+      \item $\nu(\bfx) = \nu_{\text{base}} (1 + 0.05 \cdot \text{MD}/\text{MD}_{\text{ref}})$
+      \item Tumor: $E = 8000$\,Pa (3.2$\times$ brain)
+      \item CSF: $E = 100$\,Pa, $\nu = 0.49$
+    \end{itemize}
+  \end{columns}
+
+  \medskip
+
+  \begin{center}
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Tissue} & \textbf{Mean $|\bfu|$ (mm)} &
+      \textbf{Mean $\sigma_{\text{vm}}$ (Pa)} & \textbf{Mean $J$} \\
+    \midrule
+    White matter   & 0.023 & 12.5 & 1.000036 \\
+    Gray matter    & 0.027 & \phantom{0}8.5 & 1.000101 \\
+    \alert{Tumor}  & 0.026 & \alert{35.0} & 1.000035 \\
+    CSF            & 0.034 & \phantom{0}0.5 & 1.000237 \\
+    Deep nuclei    & 0.024 & \phantom{0}8.1 & 1.000093 \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  Tumor has 3.5$\times$ higher stress than brain average ---
+  confirming stress concentration at material interfaces.
+
+\end{frame}
+
+% ---- Backup 11 ----
+\begin{frame}{FEM vs.\ Empirical Deformation: Interpreting $r = 0.10$}
+
+  \small
+
+  \begin{columns}[T]
+    \column{0.45\textwidth}
+    \textbf{FEM (gravity only):}
+    \begin{itemize}\setlength\itemsep{1pt}
+      \item Max $|\bfu| = 0.31$\,mm
+      \item Mean $|\bfu| = 0.018$\,mm
+      \item Static, linear elastic
+      \item Rigid skull boundary
+    \end{itemize}
+
+    \medskip
+
+    \textbf{ANTs SyN (empirical):}
+    \begin{itemize}\setlength\itemsep{1pt}
+      \item Max $|\bfu| = 6.14$\,mm
+      \item Mean $|\bfu| = 0.69$\,mm
+      \item 6-month interval
+      \item Tumour removed ($\sim$45\,cm$^3$)
+    \end{itemize}
+
+    \column{0.52\textwidth}
+    \textbf{The gap is informative:}
+
+    \medskip
+
+    The 20$\times$ difference quantifies the contribution
+    of \alert{non-gravitational biomechanics}:
+
+    \begin{enumerate}\setlength\itemsep{2pt}
+      \item Mass-effect release ($\sim$45\,cm$^3$ tumour removed)
+      \item CSF redistribution (ICP dynamics)
+      \item Post-operative swelling / oedema
+      \item Tissue remodelling (6 months)
+      \item Registration regularisation
+    \end{enumerate}
+
+    \medskip
+
+    Closing this gap requires modelling each mechanism ---
+    each is a \textbf{mathematical challenge} in itself.
+  \end{columns}
+
+  \bigskip
+
+  \centering
+  Output: \texttt{fem\_displacement\_magnitude.nii.gz} ---
+  spatial overlay with ANTs field in Freeview.
+
+\end{frame}
+
+% ---- Backup 12 ----
+\begin{frame}{Backup 12: Improved Simulation --- Mass Effect Release}
+
+  \small
+
+  \textbf{Model}: Tumour mass effect release as exponentially decaying body force:
+
+  \[
+    \bff_{\text{rebound}}(\bfx)
+    = \frac{p_0}{L}\,e^{-d(\bfx)/L}\,\hat{\mathbf{r}}_{\text{in}}(\bfx)
+    \quad
+    p_0 = 1500\;\text{Pa},\;L=15\;\text{mm}
+  \]
+
+  Peak force at cavity surface: $96{,}526$\,N/m$^3$ ($\approx 9.5\times$ gravity).
+
+  \medskip
+
+  \begin{tabular}{lccc}
+    \toprule
+    \textbf{Metric} & \textbf{Gravity only} & \textbf{+ Mass effect} & \textbf{Empirical} \\
+    \midrule
+    Max $|\bfu|$ (mm) & 0.31 & \alert{2.09} & 6.14 \\
+    Mean $|\bfu|$ (mm) & 0.018 & \alert{0.101} & 0.61 \\
+    Pearson $r$ & 0.101 & \alert{0.130} & -- \\
+    Max $\sigma_{\text{vm}}$ (Pa) & 256 & 1821 & -- \\
+    $J = \det(\mathbf{F})$ range & [0.96, 1.05] & [0.55, 1.27] & -- \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  \textbf{Sensitivity} ($p_0$ sweep):
+  Displacement scales linearly with $p_0$.
+  At $p_0 = 3000$\,Pa: max $|\bfu| = 4.15$\,mm (still below empirical).
+  Remaining gap ($2.9\times$) from rigid skull BC, CSF dynamics,
+  biological remodelling.
+
+\end{frame}
+
+% ---- Backup 13 ----
+\begin{frame}{Backup 13: Coupled Mechanics--Neural Dynamics (NB08)}
+
+  \small
+
+  \textbf{Pipeline}: FEM displacement $\to$ DK68 parcels
+  $\to$ SC modulation + bifurcation shift $\to$ Hopf oscillator
+  $\to$ FC comparison
+
+  \medskip
+
+  \textbf{Coupling mechanisms:}
+  \begin{enumerate}
+    \item \textbf{SC modulation}: $C_{ij}^{\text{coupled}}
+      = C_{ij}\,\exp\!\bigl(-\alpha\,\tfrac{\bar{d}_i + \bar{d}_j}
+      {2\bar{d}_{\max}}\bigr)$,\; $\alpha = 2.0$
+      $\;\Rightarrow\;$ 14\% total SC reduction
+    \item \textbf{Bifurcation shift}: $\lambda_i^{\text{coupled}}
+      = 0.1 - \beta\,\bar{d}_i/\bar{d}_{\max}$,\; $\beta = 0.15$
+      $\;\Rightarrow\;$ 2 regions subcritical
+  \end{enumerate}
+
+  \medskip
+
+  \begin{tabular}{lcc}
+    \toprule
+    \textbf{Model} & \textbf{Mean FC} & $r(\text{empirical FC})$ \\
+    \midrule
+    Baseline (pre-resection) & 0.968 & 0.041 \\
+    Deformation-coupled & 0.968 & 0.037 \\
+    Post-resection (lesioned) & 0.968 & 0.041 \\
+    \bottomrule
+  \end{tabular}
+
+  \medskip
+
+  \textbf{Interpretation}: Near-identical FC reflects uniform Hopf
+  parameters ($\lambda = 0.1$ for all regions). The \textbf{framework}
+  is correct; meaningful FC differences require per-region parameter
+  fitting (inverse problem).
+
+\end{frame}

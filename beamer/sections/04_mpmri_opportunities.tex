@@ -1,0 +1,158 @@
+% =============================================================================
+% 04_mpmri_opportunities.tex -- mpMRI Opportunities (~5-6 frames)
+% =============================================================================
+
+\section{Multiparametric MRI Opportunities}
+
+% ---- Frame 1 ----
+\begin{frame}{Three Modalities, Three Layers}
+
+  \begin{center}
+  \begin{tikzpicture}[
+    box/.style={draw, rounded corners, minimum width=3.2cm,
+                minimum height=1.2cm, align=center, font=\small},
+    arr/.style={-{Stealth[length=3mm]}, thick},
+    node distance=1.8cm
+  ]
+    \node[box] (smri) {T1w (sMRI)\\[2pt]\scriptsize Geometry};
+    \node[box, right=of smri] (dmri) {DWI (dMRI)\\[2pt]\scriptsize Microstructure};
+    \node[box, right=of dmri] (fmri) {BOLD (fMRI)\\[2pt]\scriptsize Function};
+
+    \node[box, below=1.5cm of smri] (geo) {\textbf{Geometric}\\layer};
+    \node[box, below=1.5cm of dmri] (con) {\textbf{Constitutive}\\layer};
+    \node[box, below=1.5cm of fmri] (fun) {\textbf{Functional}\\layer};
+
+    \draw[arr] (smri) -- (geo);
+    \draw[arr] (dmri) -- (con);
+    \draw[arr] (fmri) -- (fun);
+
+    \node[box, below=1.5cm of con, minimum width=10.5cm]
+      (sim) {\textbf{Simulation layer} -- FEniCSx / PDE solver};
+
+    \draw[arr] (geo) -- (sim);
+    \draw[arr] (con) -- (sim);
+    \draw[arr] (fun) -- (sim);
+  \end{tikzpicture}
+  \end{center}
+
+\end{frame}
+
+% ---- Frame 2 ----
+\begin{frame}{T1w Structural MRI: Geometry}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item $1\,\text{mm}$ isotropic MPRAGE
+      \item FreeSurfer segmentation:
+      \begin{itemize}
+        \item Cortical parcellation (Desikan--Killiany)
+        \item Subcortical structures (aseg)
+        \item Hippocampal subfields, brainstem, thalamic nuclei
+      \end{itemize}
+      \item Pial and white matter surfaces
+      \item Cortical thickness maps
+      \item $\to$ FE mesh domain $\Omega$
+    \end{itemize}
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: Freeview aparc+aseg overlay
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} FreeSurfer\\
+        \texttt{aparc+aseg} overlay\\[2pt]
+        \texttt{FV-03\_aparc\_aseg.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 3 ----
+\begin{frame}{Diffusion MRI: Microstructure and Constitutive Properties}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item Multi-shell EPI (b = 0, 1000, 2000, 3000\,s/mm$^2$)
+      \item AP + PA acquisitions $\to$ distortion correction
+      \item DTI fitting: FA, MD, AD, RD maps
+      \item Constrained spherical deconvolution (CSD) $\to$ fODFs
+      \item Tractography + SIFT2 $\to$ structural connectome
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{Mechanical relevance:}\\
+    Fiber direction $\bfa_0(\bfx)$ from fODF peaks\\
+    Anisotropy ratio from FA\\
+    $\to$ transversely isotropic constitutive law
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: FA map + tractography
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} FA map and\\
+        tractography overlay\\[2pt]
+        \texttt{FV-04\_fa\_tracts.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 4 ----
+\begin{frame}{Functional MRI: Connectivity and Hemodynamics}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item Resting-state BOLD EPI
+      \item fMRIPrep: motion correction, confound regression,
+        SyN-based susceptibility distortion correction
+      \item Functional connectivity (FC) matrix
+      \item Physiological noise components (cardiac, respiratory)
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{Mechanical relevance:}\\
+    FC provides spatial priors and zoning\\
+    Physiological regressors $\to$ candidate BC drivers\\
+    SC--FC coupling $\to$ structure--function relationship
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: FC matrix or BOLD time series
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} BOLD signal\\
+        and FC matrix\\[2pt]
+        \texttt{FV-05\_bold\_fc.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 5 ----
+\begin{frame}{From mpMRI to Digital Twin: The Pipeline}
+
+  % FIGURE SLOT: workflow diagram (full pipeline)
+  \begin{center}
+    \fbox{\parbox{0.85\textwidth}{\centering\small
+      \textit{Figure:} Full pipeline workflow diagram\\
+      T1w/DWI/BOLD $\to$ FreeSurfer/fMRIPrep/QSIPrep/MRtrix3
+      $\to$ co-registration $\to$ SC/FC/rsHRF $\to$ mesh $\to$ FE model\\[4pt]
+      \texttt{figures/pipeline\_workflow.pdf}\\[4pt]
+      \textit{(or TikZ diagram -- see Section 6 for details)}
+    }}
+  \end{center}
+
+  \bigskip
+
+  Each modality contributes a different \emph{layer} of the digital
+  twin. The fully self-contained pipeline transforms raw BIDS NIfTI
+  data into co-registered derivatives, connectivity matrices, and
+  voxel-wise HRF parameters -- all in native T1w space.
+
+\end{frame}

@@ -1,0 +1,41 @@
+{
+    "Name": "BTC_preop_postop_glioma_subset",
+    "BIDSVersion": "1.9.0",
+    "DatasetType": "raw",
+    "License": "CC0",
+    "Authors": [
+        "Aerts, H",
+        "Marinazzo, D"
+    ],
+    "Acknowledgements": "We would like to thank Prof. Dr. Van Roost and Prof. Dr. Eric Achten for their support in recruiting and testing patients at the Ghent University Hospital. We are also grateful to Stephanie Bogaert, Pieter Vandemaele and Ben Jeurissen for their technical assistance in setting up the scanning protocols.",
+    "HowToAcknowledge": "This dataset was obtained from the OpenNeuro database. Please cite the original datasets: ds001226 (BTC_preop) and ds002080 (BTC_postop).",
+    "Funding": [
+        "Special Research Funds (BOF) of the University of Ghent (01MR0210 and 01J10715)",
+        "Interuniversity Attraction Poles Program of the Belgian Federal Government (P7/11)",
+        "European Union's Horizon 2020 Framework Programme for Research and Innovation under the Specific Grant Agreement No. 785907 (Human Brain Project SGA2)"
+    ],
+    "ReferencesAndLinks": [
+        "https://doi.org/10.1523/ENEURO.0083-18.2018",
+        "https://pubmed.ncbi.nlm.nih.gov/32194282/",
+        "https://doi.org/10.18112/openneuro.ds001226.v5.0.0",
+        "https://doi.org/10.18112/openneuro.ds002080.v4.0.0"
+    ],
+    "GeneratedBy": [
+        {
+            "Name": "Manual",
+            "Description": "Single glioma patient (sub-PAT16) extracted from BTC_preop (ds001226) and BTC_postop (ds002080) datasets for the Finse 2026 project. Full 25-patient cohort available on OpenNeuro."
+        }
+    ],
+    "SourceDatasets": [
+        {
+            "DOI": "doi:10.18112/openneuro.ds001226.v5.0.0",
+            "URL": "https://openneuro.org/datasets/ds001226",
+            "Version": "5.0.0"
+        },
+        {
+            "DOI": "doi:10.18112/openneuro.ds002080.v4.0.0",
+            "URL": "https://openneuro.org/datasets/ds002080",
+            "Version": "4.0.0"
+        }
+    ]
+}

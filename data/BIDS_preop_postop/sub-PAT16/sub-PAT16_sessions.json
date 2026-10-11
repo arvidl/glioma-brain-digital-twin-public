@@ -1,0 +1,186 @@
+{
+    "session_id": {
+        "Description": "Session identifier (ses-preop or ses-postop)"
+    },
+    "stai": {
+        "Description": "State-Trait Anxiety Inventory total score",
+        "TermURL": "https://www.apa.org/pi/about/publications/caregivers/practice-settings/assessment/tools/trait-state"
+    },
+    "pswq": {
+        "Description": "Penn State Worry Questionnaire total score",
+        "TermURL": "https://doi.org/10.1016/0005-7967(90)90135-6"
+    },
+    "erq_reappraisal": {
+        "Description": "Emotion Regulation Questionnaire — cognitive reappraisal subscale"
+    },
+    "erq_suppression": {
+        "Description": "Emotion Regulation Questionnaire — expressive suppression subscale"
+    },
+    "erq_processing": {
+        "Description": "Emotion Regulation Questionnaire — processing subscale"
+    },
+    "erq_expression": {
+        "Description": "Emotion Regulation Questionnaire — expression subscale"
+    },
+    "loneliness": {
+        "Description": "UCLA Loneliness Scale total score"
+    },
+    "marital_status": {
+        "Description": "Self-reported marital/relationship status"
+    },
+    "education_level": {
+        "Description": "Education level on a 1-9 scale"
+    },
+    "employment": {
+        "Description": "Employment status at time of assessment"
+    },
+    "sport_freq_per_week": {
+        "Description": "Sport frequency per week (pre-op absolute value)",
+        "Units": "sessions/week"
+    },
+    "smoking": {
+        "Description": "Smoking status at pre-op (Yes/No/Quitted)"
+    },
+    "caffeine_index": {
+        "Description": "Caffeine consumption index at pre-op"
+    },
+    "alcohol_index_current": {
+        "Description": "Current alcohol consumption index at pre-op"
+    },
+    "alcohol_index_lifetime": {
+        "Description": "Lifetime alcohol consumption index at pre-op"
+    },
+    "sport_vs_preop": {
+        "Description": "Sport frequency compared to pre-op (post-op only)",
+        "Levels": {
+            "Same": "unchanged",
+            "More": "increased",
+            "Less": "decreased"
+        }
+    },
+    "smoking_vs_preop": {
+        "Description": "Smoking compared to pre-op (post-op only)",
+        "Levels": {
+            "Same": "unchanged",
+            "More": "increased",
+            "Less": "decreased"
+        }
+    },
+    "caffeine_vs_preop": {
+        "Description": "Caffeine use compared to pre-op (post-op only)",
+        "Levels": {
+            "Same": "unchanged",
+            "More": "increased",
+            "Less": "decreased"
+        }
+    },
+    "alcohol_vs_preop": {
+        "Description": "Alcohol use compared to pre-op (post-op only)",
+        "Levels": {
+            "Same": "unchanged",
+            "More": "increased",
+            "Less": "decreased"
+        }
+    },
+    "mot_latency_mean": {
+        "Description": "CANTAB Motor Screening — mean latency",
+        "Units": "ms"
+    },
+    "mot_latency_md": {
+        "Description": "CANTAB Motor Screening — median latency",
+        "Units": "ms"
+    },
+    "mot_error_mean": {
+        "Description": "CANTAB Motor Screening — mean error (distance from target)",
+        "Units": "pixels"
+    },
+    "rti_simple_accuracy": {
+        "Description": "CANTAB Reaction Time — simple: number of correct responses (max 9)"
+    },
+    "rti_simple_rt_mean": {
+        "Description": "CANTAB Reaction Time — simple: mean reaction time",
+        "Units": "ms"
+    },
+    "rti_simple_rt_md": {
+        "Description": "CANTAB Reaction Time — simple: median reaction time",
+        "Units": "ms"
+    },
+    "rti_simple_rt_sd": {
+        "Description": "CANTAB Reaction Time — simple: reaction time standard deviation",
+        "Units": "ms"
+    },
+    "rti_simple_mt_mean": {
+        "Description": "CANTAB Reaction Time — simple: mean movement time",
+        "Units": "ms"
+    },
+    "rti_simple_mt_md": {
+        "Description": "CANTAB Reaction Time — simple: median movement time",
+        "Units": "ms"
+    },
+    "rti_simple_mt_sd": {
+        "Description": "CANTAB Reaction Time — simple: movement time standard deviation",
+        "Units": "ms"
+    },
+    "rti_five_accuracy": {
+        "Description": "CANTAB Reaction Time — five-choice: number of correct responses (max 8)"
+    },
+    "rti_five_mt": {
+        "Description": "CANTAB Reaction Time — five-choice: movement time",
+        "Units": "ms"
+    },
+    "rti_five_rt": {
+        "Description": "CANTAB Reaction Time — five-choice: reaction time",
+        "Units": "ms"
+    },
+    "rti_five_rt_sd": {
+        "Description": "CANTAB Reaction Time — five-choice: reaction time standard deviation",
+        "Units": "ms"
+    },
+    "rti_five_mt_mean": {
+        "Description": "CANTAB Reaction Time — five-choice: mean movement time",
+        "Units": "ms"
+    },
+    "rti_five_mt_md": {
+        "Description": "CANTAB Reaction Time — five-choice: median movement time",
+        "Units": "ms"
+    },
+    "rti_five_mt_sd": {
+        "Description": "CANTAB Reaction Time — five-choice: movement time standard deviation",
+        "Units": "ms"
+    },
+    "rvp_a": {
+        "Description": "CANTAB Rapid Visual Processing — signal detection measure A'"
+    },
+    "rvp_prob_hit": {
+        "Description": "CANTAB Rapid Visual Processing — probability of hit"
+    },
+    "rvp_false_alarms": {
+        "Description": "CANTAB Rapid Visual Processing — number of false alarms"
+    },
+    "rvp_latency_mean": {
+        "Description": "CANTAB Rapid Visual Processing — mean response latency",
+        "Units": "ms"
+    },
+    "rvp_latency_md": {
+        "Description": "CANTAB Rapid Visual Processing — median response latency",
+        "Units": "ms"
+    },
+    "soc_prob_min_moves": {
+        "Description": "CANTAB Stockings of Cambridge — problems solved in minimum moves (max 12)"
+    },
+    "soc_mean_moves_2": {
+        "Description": "CANTAB Stockings of Cambridge — mean moves for 2-move problems"
+    },
+    "soc_mean_moves_3": {
+        "Description": "CANTAB Stockings of Cambridge — mean moves for 3-move problems"
+    },
+    "soc_mean_moves_4": {
+        "Description": "CANTAB Stockings of Cambridge — mean moves for 4-move problems"
+    },
+    "soc_mean_moves_5": {
+        "Description": "CANTAB Stockings of Cambridge — mean moves for 5-move problems"
+    },
+    "ssp_span_length": {
+        "Description": "CANTAB Spatial Span — maximum span length achieved"
+    }
+}

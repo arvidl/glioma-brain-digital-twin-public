@@ -1,0 +1,104 @@
+[build-system]
+requires = ["setuptools>=67.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finse26-glioma-twin"
+version = "1.0.0"
+description = "A digital twin framework for glioma imaging and simulation using structural/functional MRI and finite element modeling"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Finse 2026 Contributors", email = "contact@finse2026.org"}
+]
+requires-python = ">=3.11"
+dependencies = [
+    "nibabel>=5.0.0",
+    "nilearn>=0.10.0",
+    "pybids>=0.16.0",
+    "dipy>=1.7.0",
+    "networkx>=3.0",
+    "scipy>=1.10.0",
+    "numpy>=1.24.0",
+    "matplotlib>=3.7.0",
+    "plotly>=5.17.0",
+    "tqdm>=4.65.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+mechanics = [
+    "fenics-dolfinx>=0.7.0",
+    "petsc4py>=3.19.0",
+    "basix>=0.7.0",
+]
+
+modeling = [
+    "tvb-library>=2.8.0",
+]
+
+all = [
+    "finse26-glioma-twin[dev,mechanics,modeling]"
+]
+
+[project.scripts]
+check-env = "scripts.check_env:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "skipif: conditional skip based on environment",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "C",    # flake8-comprehensions
+    "B",    # flake8-bugbear
+]
+ignore = [
+    "E501",  # line-length (handled by black)
+]
+

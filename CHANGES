@@ -1,0 +1,60 @@
+CHANGELOG
+=========
+
+v2.1.0 – 2026-03-05
+  - Pipeline is now fully self-contained: only raw BIDS NIfTI files and
+    the Aerts tumor delineation are external inputs.  All derivatives
+    (FreeSurfer, fMRIPrep, QSIPrep, MRtrix3, RESSEG, SC, FC, rsHRF)
+    are computed from these inputs.
+  - Enriched participants.tsv with height_cm, weight_kg, fmri_tr_ms from
+    OpenNeuro releases.  New sub-PAT16_sessions.tsv/json with 48 columns
+    of session-level phenotypic data (psychosocial questionnaires, lifestyle,
+    CANTAB cognitive battery: MOT, RTI, RVP, SOC, SSP).
+  - NB01: added session-level clinical & cognitive exploration (Section 4b)
+    with CANTAB pre-/post-op comparison plots and psychosocial bar charts.
+  - Digital twin architecture upgraded from 4-layer to 5-layer:
+    Layer 5 "Clinical Outcome" formalises cognitive/psychosocial assessment
+    (CANTAB battery + questionnaires) as the validation link between
+    predicted structural disruption and observed functional change.
+  - NB08: new Step 8 (Layer 5 — Clinical Outcome Validation) with
+    CANTAB Δ analysis, domain-to-parcel mapping, SC disruption vs
+    cognitive change scatter plot.  Updated architecture diagram and
+    conclusions to reflect five-layer framework.
+  - Beamer section 08: new frame "Layer 5: Clinical Outcome Validation",
+    updated tikz diagram (five layers + feedback arrow), updated
+    Glioma vs Healthy comparison table.
+  - New script: compute_fc.py -- FC matrices + ROI time series from
+    fMRIPrep BOLD + aparc+aseg parcellation (confound regression,
+    bandpass 0.01-0.1 Hz, FD scrubbing).
+  - New script: compute_rshrf.py -- voxel-wise rsHRF parameter estimation
+    using point-process deconvolution (Wu et al. 2013).  Replaces the
+    external rsHRF BIDS App (which depends on the unmaintained pyyawt).
+  - New script: freeview_tumor_vs_cavity.sh -- compare pre-op tumor mask
+    with post-op RESSEG cavity mask (side-by-side or affine-overlay mode).
+  - register_longitudinal.sh: method-aware cache invalidation for cavity
+    mask (tracks .cavity_method; switching --resseg clears downstream
+    outputs and re-runs ANTs SyN).
+  - SC matrices computed for both sessions via compute_tvb_connectome.py.
+    Full 2035x2035 + DK-84 submatrix saved to derivatives/connectivity/.
+  - NB04: fixed grid mismatch between rsHRF maps and tumor mask using
+    nilearn resampling; added perilesional mask with guard for empty masks.
+  - New derivatives directory: derivatives/connectivity/ with sc_sift2,
+    sc_dk84, fc_pearson, fc_fisher_z, roi_timeseries per session.
+
+v2.0.0 – 2026-03-04
+  - Focus on single subject (sub-PAT16). Removed sub-PAT25 from dataset.
+  - Full BTC cohort available on OpenNeuro (ds001226, ds002080).
+  - RESSEG cavity segmentation installed and tested (postop T1w).
+  - fMRIPrep 25.2.4 and QSIPrep 1.1.1 run for PAT16 preop + postop.
+  - run_fmriprep.sh: session-specific BIDS view (symlinks) replaces
+    BIDS filter file to work around fMRIPrep 25.x multi-session conflict.
+
+1.0.0 – 2026-03-02
+  - Initial release for Finse 2026 Workshop
+  - Two glioma patients (sub-PAT16, sub-PAT25) pre- and post-operative
+  - BIDS-validated dataset (0 errors, 0 warnings)
+  - 8 didactic Jupyter notebooks (NB00–NB08)
+  - Cross-platform environment (Apple Silicon, Linux+CUDA, Google Colab)
+  - Utility modules: bids_utils, mri_utils, connectivity_utils,
+                     mechanics_utils, plotting
+  - Bash processing scripts: FreeSurfer, MRtrix3, fMRIPrep wrappers

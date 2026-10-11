@@ -1,0 +1,100 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+.conda/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+*.run.xml
+*.synctex.gz
+
+# ── Large neuroimaging data (obtained via download_data.py) ──────────────
+# Raw BIDS data -- NIfTI, tractography, FreeSurfer, MATLAB
+data/**/*.nii
+data/**/*.nii.gz
+data/**/*.trk
+data/**/*.tck
+data/**/*.mif
+data/**/*.mgh
+data/**/*.mgz
+data/**/*.mat
+
+# ── Pipeline derivatives (produced by run_pipeline.sh) ───────────────────
+# These can be 50+ GB per subject; reproduce via the pipeline, don't track
+derivatives/
+freesurfer_outputs/
+work/
+
+# ── Connectivity matrices (produced by NB15-NB16) ───────────────────────
+# Kept under derivatives/ (already covered), but also catch stray .npy
+*.npy
+
+# Release zip archives (uploaded to GitHub Releases, not tracked in git)
+BIDS_preop_postop_*.zip
+capstone_derivatives_*.zip
+
+# ── FreeSurfer license (private, not for distribution) ───────────────────
+license.txt
+!data/**/LICENSE
+!LICENSE
+
+# ── Private / local data folders ─────────────────────────────────────────
+MyStuff/
+
+# ── Tools (model weights, nnUNet, TumorSynth -- large, downloaded locally) ──
+tools/
+
+# Results and outputs
+results/
+outputs/
+logs/
+
+# Environment-specific
+.env
+*.log
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ── Generated slide outputs and raw presentation sources ─────────────────
+beamer/*.pdf
+beamer/*.pptx
+presentation/source_gslides/
+presentation/_site/
+presentation/.quarto/

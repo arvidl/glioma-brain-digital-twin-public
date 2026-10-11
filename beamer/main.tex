@@ -1,0 +1,51 @@
+% =============================================================================
+% main.tex -- Glioma Brain Digital Twin: Beamer Slide Deck
+% CAS Mathematical Challenges in Brain Mechanics -- Finse, March 2026
+% =============================================================================
+%
+% Modular structure: comment out \input lines to shorten the talk.
+% Full deck: ~60-70 frames (~90 min lecture/tutorial).
+% Short talk: keep sections 1-2, 5-6, 8-9 (~20-25 frames, ~45 min).
+%
+% Build:  make pdf   (or latexmk -pdf main.tex)
+% =============================================================================
+
+\input{preamble}
+
+\begin{document}
+
+% --- Title ---
+\input{sections/01_title}
+
+% --- Part I: Context and Motivation ---
+\input{sections/02_motivation}
+\input{sections/03_neuro_oncology}
+\input{sections/04_mpmri_opportunities}
+
+% --- Part II: Data and Processing ---
+\input{sections/05_data_and_metadata}
+\input{sections/06_processing_pipeline}
+\input{sections/07_longitudinal_registration}
+
+% --- Part III: Modeling and Mathematics ---
+\input{sections/08_digital_twin_concept}
+\input{sections/09_math_challenges}
+
+% --- Part IV: Outlook ---
+\input{sections/10_results_and_outlook}
+
+% --- Bibliography ---
+{
+\metroset{sectionpage=none}
+\begin{frame}[allowframebreaks]{References}
+  \printbibliography[heading=none]
+\end{frame}
+}
+
+% --- Backup slides ---
+\appendix
+\backupbegin
+\input{sections/11_backup}
+\backupend
+
+\end{document}

@@ -1,0 +1,142 @@
+% =============================================================================
+% 02_motivation.tex -- Introduction and Motivation (~5-6 frames)
+% =============================================================================
+
+\section{Motivation}
+
+% ---- Frame 1 ----
+\begin{frame}{What Is a Brain Digital Twin?}
+
+  A \alert{Brain Digital Twin} is a subject-specific computational replica
+  that can simulate mechanical processes in an individual brain
+  \cite{Goriely2015,Meaney2014}.
+
+  \bigskip
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item Personalized at every layer:
+      \begin{itemize}
+        \item Geometry from \textbf{this patient's} T1w
+        \item Fiber architecture from \textbf{this patient's} dMRI
+        \item Functional context from \textbf{this patient's} fMRI
+      \end{itemize}
+      \item Continuously informed by imaging data
+      \item Predicts response to perturbations
+    \end{itemize}
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: schematic of digital twin concept
+    % \includegraphics[width=\textwidth]{dt_concept_schematic.png}
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{Figure:} Digital twin concept\\
+        (physical brain $\leftrightarrow$ virtual model)
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 2 ----
+\begin{frame}{Why Gliomas?}
+
+  Diffuse gliomas present unique challenges for brain mechanics:
+
+  \bigskip
+
+  \begin{itemize}
+    \item \textbf{Clinical urgency:} most common primary brain tumors;
+      median survival for GBM $\sim$15 months
+    \item \textbf{Mass effect:} tumor growth displaces and compresses
+      surrounding tissue \cite{Zarodniuk2026}
+    \item \textbf{Surgical brain shift:} resection creates cavity,
+      CSF dynamics change, tissue deforms
+    \item \textbf{Longitudinal changes:} pre-op $\to$ post-op provides
+      \emph{empirical deformation data}
+    \item \textbf{Pathological anatomy:} standard pipelines break ---
+      segmentation, registration, boundary conditions all need adaptation
+  \end{itemize}
+
+  \bigskip
+  \alert{$\Rightarrow$} Glioma patients are the \emph{hardest} and most
+  \emph{clinically relevant} test case for brain digital twins.
+
+\end{frame}
+
+% ---- Frame 3 ----
+\begin{frame}{The Finse Workshop Context}
+
+  \textbf{CAS -- Mathematical Challenges in Brain Mechanics}\\
+  Finse, March 2026
+
+  \bigskip
+
+  \begin{itemize}
+    \item Applied mathematicians $\times$ neuroscientists $\times$
+      clinicians
+    \item Focus on the \emph{mathematical} difficulties that arise when
+      building subject-specific brain models
+    \item This talk: a \emph{concrete worked example} grounded in real
+      patient data
+  \end{itemize}
+
+  \bigskip
+
+  \textbf{Companion project:} Single-subject healthy volunteer
+  (\texttt{brain-digital-twin-finse2026})\\
+  $\to$ establishes the pipeline; \textbf{this project} extends it to
+  pathology and longitudinal change.
+
+\end{frame}
+
+% ---- Frame 4 ----
+\begin{frame}{The Governing Equation}
+
+  The mechanical forward problem:
+  \[
+    \nabla \cdot \bfsigma(\bfu, \bftheta) + \bfb
+    = \rho\,\ddot{\bfu}
+  \]
+
+  \begin{itemize}
+    \item $\bfu(\bfx,t)$ -- displacement field
+    \item $\bfsigma$ -- Cauchy stress (from constitutive law)
+    \item $\bftheta(\bfx)$ -- spatially varying material parameters
+      (stiffness, anisotropy, viscosity)
+    \item $\bfb$ -- body forces; $\rho$ -- tissue density
+  \end{itemize}
+
+  \bigskip
+
+  MRI informs: the domain $\Omega$ (geometry), the parameter field
+  $\bftheta$ (material), and -- partially -- the boundary conditions.
+
+  \bigskip
+
+  \alert{Core difficulty:} non-uniqueness. Many $(\bftheta, \text{BC})$
+  combinations explain the same images.
+
+\end{frame}
+
+% ---- Frame 5 ----
+\begin{frame}{This Talk: Roadmap}
+
+  \begin{enumerate}
+    \item Neuro-oncological challenges
+    \item Multiparametric MRI opportunities
+    \item Data and metadata (BTC dataset, BIDS)
+    \item Processing pipeline (9 steps)
+    \item Longitudinal registration and deformation fields
+    \item The digital twin concept and architecture
+    \item Mathematical challenges
+    \item Results preview and outlook
+  \end{enumerate}
+
+  \bigskip
+  \small
+  \textit{Supplemented by Google Slides with Freeview illustrations
+  (static and dynamic).}
+
+\end{frame}

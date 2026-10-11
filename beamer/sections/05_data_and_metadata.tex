@@ -1,0 +1,131 @@
+% =============================================================================
+% 05_data_and_metadata.tex -- Data and Metadata (~4-5 frames)
+% =============================================================================
+
+\section{Data and Metadata}
+
+% ---- Frame 1 ----
+\begin{frame}{The BTC Dataset (OpenNeuro ds002080)}
+
+  \textbf{Brain Tumor Connectomics} -- Aerts et al.\
+  \cite{Aerts2018,Aerts2022}
+
+  \bigskip
+
+  \begin{itemize}
+    \item 25 glioma patients, pre- and post-operative mpMRI
+    \item T1w, multi-shell DWI, resting-state BOLD per session
+    \item We use \textbf{1 subject} $\times$ \textbf{2 timepoints}:
+  \end{itemize}
+
+  \bigskip
+
+  \begin{tabular}{llll}
+    \toprule
+    \textbf{Subject} & \textbf{Session} & \textbf{Tumor} & \textbf{Modalities} \\
+    \midrule
+    PAT16 & pre-op  & LGG, left hemisphere & T1w, DWI (AP+PA), BOLD \\
+    PAT16 & post-op &  (resected)          & T1w, DWI (AP+PA), BOLD \\
+    \bottomrule
+  \end{tabular}
+
+  \medskip
+
+  \textbf{Phenotypic data} (per session):
+  psychosocial questionnaires (STAI, PSWQ, ERQ),
+  CANTAB cognitive battery (MOT, RTI, RVP, SOC, SSP)
+  $\to$ pre-/post-op \alert{cognitive outcome} tracking.
+
+\end{frame}
+
+% ---- Frame 2 ----
+\begin{frame}[fragile]{BIDS Organization}
+
+  Data organized according to the \textbf{Brain Imaging Data Structure}:
+
+  \bigskip
+
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{lstlisting}
+data/BIDS_preop_postop/
+  participants.tsv
+  sub-PAT16/
+    sub-PAT16_sessions.tsv
+    ses-preop/
+      anat/  *_T1w.nii.gz
+      dwi/   *_acq-AP_dwi.nii.gz
+      func/  *_task-rest_bold...
+    ses-postop/
+      anat/  ...
+      dwi/   ...
+      func/  ...
+    \end{lstlisting}
+
+    \column{0.45\textwidth}
+    \begin{itemize}
+      \item Subject $\times$ session hierarchy
+      \item AP + PA DWI pairs $\to$ robust distortion correction
+      \item JSON sidecars with acquisition parameters
+      \item \texttt{*\_sessions.tsv}: 48 cols of clinical \& cognitive data
+      \item \texttt{download\_data.py} retrieves from OpenNeuro
+    \end{itemize}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 3 ----
+\begin{frame}{Acquisition Parameters}
+
+  \begin{tabular}{llll}
+    \toprule
+    \textbf{Modality} & \textbf{Sequence} & \textbf{Resolution} & \textbf{Key parameters} \\
+    \midrule
+    T1w  & MPRAGE & 1\,mm iso & $176 \times 256 \times 256$ \\
+    DWI  & EPI    & 2.5\,mm iso & $b = 700,\, 1000,\, 2000$\,s/mm$^2$ \\
+    BOLD & EPI    & 3\,mm iso & TR $= 1.7$\,s, resting state \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  \textbf{Key differences from the healthy-volunteer project:}
+  \begin{itemize}
+    \item Multi-shell DWI (3 shells vs.\ 4 in healthy)
+    \item AP + PA DWI pairs available $\to$ topup-based SDC
+    \item Pathological anatomy in all sessions
+    \item Two timepoints per subject $\to$ longitudinal analysis
+  \end{itemize}
+
+\end{frame}
+
+% ---- Frame 4 ----
+\begin{frame}{What the Data Gives Us for Brain Mechanics}
+
+  \begin{center}
+  \begin{tikzpicture}[
+    box/.style={draw, rounded corners, minimum width=4cm,
+                minimum height=0.8cm, align=center, font=\small},
+    arr/.style={-{Stealth[length=3mm]}, thick},
+    node distance=1.2cm
+  ]
+    \node[box] (raw) {Raw mpMRI\\(T1w + DWI + BOLD)};
+    \node[box, below=of raw] (deriv) {Co-registered derivatives\\in T1w space};
+    \node[box, below left=1.2cm and -0.5cm of deriv]
+      (pre) {Pre-op model};
+    \node[box, below right=1.2cm and -0.5cm of deriv]
+      (post) {Post-op model};
+    \node[box, below=1.2cm of deriv] (delta) {\alert{$\Delta$ = empirical deformation}};
+
+    \draw[arr] (raw) -- (deriv);
+    \draw[arr] (deriv) -- (pre);
+    \draw[arr] (deriv) -- (post);
+    \draw[arr] (pre) -- (delta);
+    \draw[arr] (post) -- (delta);
+  \end{tikzpicture}
+  \end{center}
+
+  The longitudinal design provides what most brain mechanics studies
+  lack: \alert{observed displacement data} for validation.
+
+\end{frame}

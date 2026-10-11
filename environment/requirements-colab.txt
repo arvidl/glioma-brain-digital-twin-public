@@ -1,0 +1,31 @@
+# Requirements for Google Colab (pip install only)
+# Colab already ships: numpy, scipy, pandas, matplotlib, scikit-learn, torch
+#
+# Run in a Colab cell:
+#   !pip install -r requirements-colab.txt -q
+
+# ── Core (needed to run all notebooks) ───────────────────────────────────────
+nibabel>=5.2
+nilearn>=0.10
+pybids>=0.16
+dipy>=1.9
+networkx>=3.2
+seaborn>=0.13
+plotly>=5.18
+ipywidgets>=8.1
+h5py>=3.10
+tqdm>=4.66
+bids-validator>=1.14
+
+# ── Optional (install if needed) ─────────────────────────────────────────────
+# antspyx>=0.4             # ANTs registration
+# pydicom>=2.4             # DICOM I/O
+# bctpy>=0.5.2             # Brain Connectivity Toolbox
+# rsHRF: computed internally by scripts/compute_rshrf.py (no external package needed)
+# python-igraph>=0.11      # Fast graph algorithms
+# pyvista>=0.43             # 3D visualization
+# trimesh>=4.2              # Surface meshes
+# fury>=0.10                # 3D neuroimaging viz
+# statsmodels>=0.14         # Statistical models
+# tvb-library>=2.8          # The Virtual Brain (large, ~2 min install)
+# FEniCSx: see NB07 notebook for Colab-specific install instructions

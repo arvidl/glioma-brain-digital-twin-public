@@ -1,0 +1,98 @@
+% =============================================================================
+% preamble.tex -- Beamer preamble for Glioma Brain Digital Twin
+% CAS Mathematical Challenges in Brain Mechanics -- Finse, March 2026
+% =============================================================================
+
+\documentclass[aspectratio=169,11pt]{beamer}
+
+% --- Theme ---
+\usetheme{metropolis}
+\metroset{
+  progressbar=frametitle,
+  numbering=fraction,
+  block=fill,
+  sectionpage=progressbar
+}
+
+% --- Fonts and encoding ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+% --- Math ---
+\usepackage{amsmath,amssymb,bm}
+
+% --- Tables ---
+\usepackage{booktabs}
+\usepackage{tabularx}
+
+% --- Graphics ---
+\usepackage{graphicx}
+\graphicspath{{figures/}{gslides/}}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, calc}
+
+% --- Code listings (for pipeline commands) ---
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  backgroundcolor=\color{mDarkTeal!5},
+  frame=none,
+  breaklines=true,
+  columns=flexible,
+}
+
+% --- Hyperlinks ---
+\usepackage{hyperref}
+
+% --- Bibliography ---
+\usepackage[backend=biber,style=numeric-comp,maxnames=2,sorting=none]{biblatex}
+\addbibresource{references.bib}
+\setbeamerfont{footnote}{size=\tiny}
+
+% --- Colors (project-specific) ---
+\definecolor{tumorRed}{RGB}{204, 51, 51}
+\definecolor{cavityBlue}{RGB}{51, 102, 204}
+\definecolor{wmGreen}{RGB}{51, 153, 102}
+\definecolor{gmOrange}{RGB}{230, 138, 0}
+
+% --- Bold vector notation macros ---
+\newcommand{\bfu}{\bm{u}}
+\newcommand{\bfv}{\bm{v}}
+\newcommand{\bfx}{\bm{x}}
+\newcommand{\bfF}{\bm{F}}
+\newcommand{\bfP}{\bm{P}}
+\newcommand{\bfC}{\bm{C}}
+\newcommand{\bfI}{\bm{I}}
+\newcommand{\bfsigma}{\bm{\sigma}}
+\newcommand{\bftheta}{\bm{\theta}}
+\newcommand{\bfn}{\bm{n}}
+\newcommand{\bfb}{\bm{b}}
+\newcommand{\bfa}{\bm{a}}
+\newcommand{\bfg}{\bm{g}}
+
+% --- Convenience macros ---
+\newcommand{\dt}{digital twin}
+\newcommand{\DT}{Digital Twin}
+\newcommand{\mpmri}{mpMRI}
+\newcommand{\credit}[1]{\par\vspace{2pt}{\tiny\textcolor{gray}{#1}}}
+
+% --- Backup slides (don't count in frame numbering) ---
+\newcommand{\backupbegin}{%
+  \newcounter{framenumberappendix}
+  \setcounter{framenumberappendix}{\value{framenumber}}
+}
+\newcommand{\backupend}{%
+  \addtocounter{framenumberappendix}{-\value{framenumber}}
+  \addtocounter{framenumber}{\value{framenumberappendix}}
+}
+
+% --- Title metadata ---
+\title{Glioma Brain Digital Twin}
+\subtitle{From Multiparametric MRI to Mathematical Challenges\\
+  in Brain Mechanics}
+\author{Arvid Lundervold}
+\institute{%
+  CAS -- Mathematical Challenges in Brain Mechanics\\
+  Finse, March 2026}
+\date{March 2026}

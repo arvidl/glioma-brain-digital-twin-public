@@ -1,0 +1,135 @@
+name: finse26
+
+# ─── Channel priority ────────────────────────────────────────────────────────
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+
+  # ── Python ──────────────────────────────────────────────────────────────────
+  - python=3.11
+
+  # ── Core scientific stack ──────────────────────────────────────────────────
+  #    These are imported directly by notebooks and/or scripts.
+  - numpy>=1.26,<2.0
+  - scipy>=1.12
+  - pandas>=2.1
+  - matplotlib>=3.8
+  - seaborn>=0.13
+
+  # ── Neuroimaging ───────────────────────────────────────────────────────────
+  - nibabel>=5.2
+  - nilearn>=0.10
+  - pybids>=0.16            # imported as `bids`
+  - dipy>=1.9               # DWI analysis (NB03, mri_utils)
+
+  # ── Network analysis ───────────────────────────────────────────────────────
+  - networkx>=3.2            # NB05, connectivity_utils
+
+  # ── Visualization ──────────────────────────────────────────────────────────
+  - plotly>=5.18             # referenced by check_env, test suite
+  - ipympl                   # interactive matplotlib in notebooks
+
+  # ── Jupyter ────────────────────────────────────────────────────────────────
+  - jupyterlab>=4.1
+  - ipykernel>=6.29
+  - ipywidgets>=8.1
+  - nbformat>=5.9
+
+  # ── File I/O ───────────────────────────────────────────────────────────────
+  - tqdm>=4.66               # referenced by check_env, test suite
+  - h5py>=3.10
+
+  # ── Testing / code quality ─────────────────────────────────────────────────
+  - pytest>=8.0
+  - pytest-cov>=4.1
+  - black>=24.0
+  - ruff>=0.3
+
+  # ── Build ──────────────────────────────────────────────────────────────────
+  - pip
+
+  # ── pip-only packages ──────────────────────────────────────────────────────
+  - pip:
+    - bids-validator>=1.14   # BIDS validation helper
+    - python-pptx>=1.0       # beamer/build_pptx.py, build_tutorial_pptx.py
+
+# ─── PIPELINE TOOLS (required for run_pipeline.sh) ─────────────────────────
+#
+# ANTs command-line tools are needed by register_to_t1w.sh and
+# register_longitudinal.sh.  Install into this environment:
+#
+#   conda install -c conda-forge ants
+#
+# (Already present if you ran the pipeline setup.)
+
+# ─── OPTIONAL PACKAGES ─────────────────────────────────────────────────────
+#
+# The packages below are NOT required to run the notebooks or scripts.
+# Install them separately if you need specific functionality.
+#
+# ┌──────────────────────────────────────────────────────────────────────────┐
+# │ FEniCSx (NB07 brain mechanics -- notebook has analytical fallback)     │
+# │                                                                        │
+# │   conda install -c conda-forge fenics-dolfinx mpich petsc slepc        │
+# │                                                                        │
+# │ TVB - The Virtual Brain (whole-brain network modeling)                 │
+# │                                                                        │
+# │   pip install tvb-library>=2.8                                         │
+# │                                                                        │
+# │ ANTs Python bindings + DICOM tools                                     │
+# │                                                                        │
+# │   conda install -c conda-forge antspyx pydicom dcm2niix               │
+# │                                                                        │
+# │ 3D visualization (pyvista, VTK)                                        │
+# │                                                                        │
+# │   conda install -c conda-forge pyvista vtk trame trame-vtk            │
+# │                                                                        │
+# │ Extended scientific stack                                               │
+# │                                                                        │
+# │   conda install -c conda-forge scikit-learn scikit-image statsmodels   │
+# │                                                                        │
+# │ Additional pip packages                                                │
+# │                                                                        │
+# │   pip install bctpy trimesh fury                                       │
+# │                                                                        │
+# │ rsHRF: NOT needed as external package.  scripts/compute_rshrf.py       │
+# │   implements point-process deconvolution (Wu et al. 2013) using only   │
+# │   scipy/numpy/nibabel.                                                 │
+# │                                                                        │
+# │ PyTorch (platform-specific -- see PLATFORM NOTES below)                │
+# │                                                                        │
+# │   pip install torch torchvision torchaudio                             │
+# │                                                                        │
+# │ RESSEG (postoperative brain cavity segmentation, Pérez-García 2021)    │
+# │   Requires PyTorch.  On macOS set KMP_DUPLICATE_LIB_OK=TRUE.          │
+# │                                                                        │
+# │   pip install resseg                                                   │
+# │   # Download model weights (placed inside resseg package dir):         │
+# │   # curl -L -o $(python -c "import resseg, pathlib;                    │
+# │   #   print(pathlib.Path(resseg.__file__).parent)")/self_semi_37-b571f7ba.pth \
+# │   #   https://github.com/fepegar/resseg/raw/master/self_semi_37-b571f7ba.pth │
+# └──────────────────────────────────────────────────────────────────────────┘
+
+# ─── PLATFORM NOTES ──────────────────────────────────────────────────────────
+#
+#  Apple Silicon (M1/M2/M3/M4 – ARM64)
+#  ────────────────────────────────────
+#  Use Miniforge or Mambaforge (native ARM builds).
+#  MRtrix3: install via Homebrew:
+#    brew install mrtrix3
+#
+#  Linux + NVIDIA CUDA (Ubuntu 22/24, CUDA 12.x)
+#  ───────────────────────────────────────────────
+#  After `conda env create`, install PyTorch with CUDA:
+#    pip install torch torchvision torchaudio --index-url \
+#        https://download.pytorch.org/whl/cu121
+#  MRtrix3: install via conda-forge or from source.
+#
+#  Google Colab
+#  ────────────
+#  Use environment/requirements-colab.txt instead:
+#    !pip install -r requirements-colab.txt -q
+#
+#  See INSTALLATION.md for full step-by-step instructions.

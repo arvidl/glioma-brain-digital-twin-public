@@ -1,0 +1,12 @@
+name: cas-fmriprep
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - setuptools
+  # ANTs -- native ARM64 build from conda-forge
+  - ants>=2.5
+  - pip
+  - pip:
+    - fmriprep>=25.2

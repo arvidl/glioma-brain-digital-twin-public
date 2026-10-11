@@ -1,0 +1,259 @@
+% =============================================================================
+% 08_digital_twin_concept.tex -- Digital Twin Architecture (~6-8 frames)
+% =============================================================================
+
+\section{The Digital Twin Concept}
+
+% ---- Frame 1 ----
+\begin{frame}{Five-Layer Architecture}
+
+  \begin{center}
+  \begin{tikzpicture}[
+    layer/.style={draw, rounded corners, minimum width=10cm,
+                  minimum height=0.9cm, align=center, font=\small},
+    arr/.style={-{Stealth[length=2.5mm]}, thick},
+    node distance=0.5cm
+  ]
+    \node[layer] (L1) {\textbf{Layer 1: Geometric} --
+      patient-specific FE mesh from T1w segmentation};
+    \node[layer, below=of L1] (L2) {\textbf{Layer 2: Constitutive} --
+      heterogeneous, anisotropic material properties from dMRI};
+    \node[layer, below=of L2] (L3) {\textbf{Layer 3: Functional} --
+      connectivity patterns and hemodynamic priors from fMRI};
+    \node[layer, below=of L3] (L4) {\textbf{Layer 4: Simulation} --
+      PDE solver (FEniCSx): displacement, stress, strain};
+    \node[layer, below=of L4, fill=structure!15] (L5)
+      {\textbf{Layer 5: Clinical Outcome} --
+      cognitive \& psychosocial assessment (CANTAB, questionnaires)};
+
+    \draw[arr] (L1) -- (L2);
+    \draw[arr] (L2) -- (L3);
+    \draw[arr] (L3) -- (L4);
+    \draw[arr] (L4) -- (L5);
+    \draw[arr, dashed, bend left=40] (L5.east) to
+      node[right, font=\scriptsize, align=left]
+        {validation\\feedback} (L4.east);
+  \end{tikzpicture}
+  \end{center}
+
+  Each layer is \emph{personalized}: geometry from this patient's T1w,
+  fibers from this patient's dMRI, function from this patient's fMRI,
+  and outcomes from this patient's cognitive battery.
+
+\end{frame}
+
+% ---- Frame 2 ----
+\begin{frame}{Layer 1: Patient-Specific Geometry}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item T1w segmentation $\to$ tissue label map
+      \item Marching cubes $\to$ surface extraction
+      \item Gmsh \cite{Geuzaine2009} $\to$ tetrahedral volume mesh
+      \item Compartment tagging (GM, WM, CSF, deep nuclei, \ldots)
+      \item Adaptive element sizing: finer near surfaces
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{Glioma-specific:}
+    \begin{itemize}
+      \item Pre-op mesh includes tumor region
+      \item Post-op mesh includes cavity as boundary
+      \item Mesh quality at irregular geometry
+    \end{itemize}
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: FE mesh visualization
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{Figure:} Tetrahedral mesh\\
+        with tissue compartments\\[2pt]
+        \texttt{figures/fe\_mesh.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 3 ----
+\begin{frame}{Layer 2: dMRI-Informed Constitutive Properties}
+
+  \textbf{Isotropic tissues} (cortical GM, deep nuclei, hippocampus):
+  \[
+    W_{\text{iso}} = \frac{\mu}{2}(\bar{I}_1 - 3)
+      + \frac{\kappa}{2}(J - 1)^2
+    \qquad \text{(neo-Hookean)}
+  \]
+
+  \textbf{Anisotropic tissues} (WM, corpus callosum, brainstem):
+  \[
+    W_{\text{aniso}} = W_{\text{iso}}
+      + \frac{k_1}{2k_2}\left[
+        \exp\!\bigl(k_2 \langle I_4 - 1 \rangle^2\bigr) - 1
+      \right]
+  \]
+  where $I_4 = \bfa_0 \cdot \bfC\, \bfa_0$, with fiber direction
+  $\bfa_0(\bfx)$ from fODF peaks and $k_1 \propto \text{FA}$.
+
+  \bigskip
+
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Tissue} & $\mu$ (kPa) & \textbf{Model} \\
+    \midrule
+    Cortical GM  & 2.0 & Isotropic neo-Hookean \\
+    Cerebral WM  & 1.5 & Transversely isotropic (Holzapfel) \\
+    Deep nuclei  & 2.5 & Isotropic \\
+    CSF          & $10^{-3}$ & Penalty stiffness \\
+    \bottomrule
+  \end{tabular}
+
+\end{frame}
+
+% ---- Frame 4 ----
+\begin{frame}{Layer 3: Functional Connectivity}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \textbf{Structural connectivity (SC):}
+    \begin{itemize}
+      \item \texttt{compute\_tvb\_connectome.py} (Step 7)
+      \item SIFT2-weighted streamline counts
+      \item $83\times83$ Desikan-Killiany matrix
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{SC--FC coupling:}
+    \begin{itemize}
+      \item Pearson correlation between SC and FC
+      \item Regions of high SC--FC coupling $\to$ well-constrained
+      \item Regions of low coupling $\to$ functionally plastic
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    \textbf{Functional connectivity (FC):}
+    \begin{itemize}
+      \item \texttt{compute\_fc.py} (Step 8)
+      \item Band-pass filtered, confound-regressed, scrubbed
+      \item Pearson correlation + Fisher-$z$ transform
+    \end{itemize}
+
+    \bigskip
+
+    % FIGURE SLOT: SC and FC matrices side by side
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} SC vs FC\\
+        matrices (pre-op)\\[2pt]
+        \texttt{FV-12\_sc\_fc.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 5 ----
+\begin{frame}{Layer 4: The Forward Problem}
+
+  Find $\bfu \in V$ such that $\forall\, \bfv \in V_0$:
+  \[
+    \int_{\Omega_0} \bfP(\bfu) : \nabla_0 \bfv \,\mathrm{d}V
+    = \int_{\Omega_0} \rho_0 \,\bfb \cdot \bfv \,\mathrm{d}V
+    + \int_{\Gamma_{\text{vent}}} p_{\text{CSF}} \,
+      J\,\bfF^{-\mathrm{T}}\bfn_0 \cdot \bfv \,\mathrm{d}A
+  \]
+
+  \begin{itemize}
+    \item $\bfP = \partial W / \partial \bfF$ -- first Piola--Kirchhoff
+      stress
+    \item $\bfF = \bfI + \nabla_0\bfu$ -- deformation gradient
+    \item Newton iteration via PETSc/SNES through FEniCSx/DOLFINx
+      \cite{Baratta2023}
+    \item Near-incompressibility: $\kappa = 100\,\mu$
+  \end{itemize}
+
+  \bigskip
+
+  \textbf{Boundary conditions:}
+  \begin{enumerate}
+    \item Gravity (supine) + clamped skull
+    \item Gravity (prone vs.\ supine)
+    \item Intracranial pressure on ventricular surface
+  \end{enumerate}
+
+\end{frame}
+
+% ---- Frame 6 ----
+\begin{frame}{Layer 5: Clinical Outcome Validation}
+
+  The mechanical model predicts \emph{where} tissue deforms and
+  \emph{which} tracts are disrupted. Layer~5 asks:
+  \alert{did this matter for the patient?}
+
+  \bigskip
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \textbf{Cognitive battery (CANTAB):}
+    \begin{itemize}
+      \item MOT -- motor screening
+      \item RTI -- reaction time (simple + 5-choice)
+      \item RVP -- sustained attention ($A'$)
+      \item SOC -- spatial planning (Stockings)
+      \item SSP -- spatial working memory span
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    \textbf{Psychosocial:}
+    \begin{itemize}
+      \item STAI -- trait anxiety
+      \item PSWQ -- worry
+      \item ERQ -- emotion regulation
+      \item UCLA Loneliness
+    \end{itemize}
+  \end{columns}
+
+  \bigskip
+
+  \textbf{Closing the loop:}
+  \begin{enumerate}
+    \item Simulation predicts tract disruption in region $r$
+    \item Map $r$ to DK parcels $\to$ identify affected cognitive domain
+    \item Compare predicted deficit with observed $\Delta\text{CANTAB}$
+    \item Discrepancies $\to$ model refinement (functional plasticity?)
+  \end{enumerate}
+
+\end{frame}
+
+% ---- Frame 7 ----
+\begin{frame}{Glioma vs.\ Healthy: What Changes in the Twin?}
+
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Layer} & \textbf{Healthy} & \textbf{Glioma} \\
+    \midrule
+    Geometry & Normal anatomy &
+      Tumor mass / cavity / shifted anatomy \\
+    Constitutive & Standard $\mu$, FA &
+      Altered diffusion in infiltration zone \\
+    Functional & Normal FC &
+      Reorganized connectivity \\
+    Boundary & Skull + ventricles &
+      + cavity surface (new BC) \\
+    Validation & No displacement data &
+      \alert{Pre-op $\to$ post-op deformation} \\
+    Clinical outcome & No deficit data &
+      \alert{CANTAB $\Delta$ pre $\to$ post} \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  The glioma digital twin is harder to build but offers something
+  the healthy twin cannot: \alert{observed mechanical deformation}
+  \emph{and} \alert{measured cognitive outcomes} from longitudinal data.
+
+\end{frame}

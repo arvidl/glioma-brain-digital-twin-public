@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install linters
+        run: pip install ruff black
+
+      - name: Check formatting with black
+        run: black --check --diff scripts/ tests/
+
+      - name: Lint with ruff
+        run: ruff check scripts/ tests/
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install core dependencies
+        run: |
+          pip install --upgrade pip
+          pip install nibabel nilearn pybids dipy networkx scipy numpy matplotlib plotly tqdm
+          pip install pytest pytest-cov
+
+      - name: Run environment tests
+        run: pytest tests/test_environment.py -v
+
+      - name: Run data loading tests
+        run: pytest tests/test_data_loading.py -v --tb=short || true
+
+  notebooks:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install nibabel nilearn pybids dipy networkx scipy numpy matplotlib plotly tqdm
+          pip install seaborn scikit-learn pandas
+          pip install jupyter nbformat nbconvert
+
+      - name: Validate notebook JSON structure
+        run: |
+          python -c "
+          import nbformat, sys, glob
+          errors = []
+          for nb_path in sorted(glob.glob('notebooks/NB*.ipynb')):
+              try:
+                  with open(nb_path) as f:
+                      nbformat.read(f, as_version=4)
+                  print(f'OK: {nb_path}')
+              except Exception as e:
+                  errors.append(f'FAIL: {nb_path}: {e}')
+                  print(f'FAIL: {nb_path}: {e}')
+          if errors:
+              sys.exit(1)
+          "

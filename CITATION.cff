@@ -1,0 +1,50 @@
+cff-version: 1.2.0
+message: "If you use this software or its materials, please cite it as below."
+title: "Glioma Brain Digital Twin: multimodal MRI, brain mechanics, network dynamics and cognitive outcome in a single glioma patient"
+type: software
+authors:
+  - family-names: Lundervold
+    given-names: Arvid
+    affiliation: "University of Bergen, Norway"
+repository-code: "https://github.com/arvidl/glioma-brain-digital-twin-public"
+license: MIT
+date-released: 2026-10-11
+keywords:
+  - glioma
+  - digital twin
+  - brain mechanics
+  - connectomics
+  - The Virtual Brain
+  - FEniCSx
+  - neuro-oncology
+references:
+  - type: article
+    authors:
+      - family-names: Aerts
+        given-names: Hannelore
+      - family-names: Schirner
+        given-names: Michael
+      - family-names: Jeurissen
+        given-names: Ben
+      - family-names: Van Roost
+        given-names: Dirk
+      - family-names: Achten
+        given-names: Eric
+      - family-names: Ritter
+        given-names: Petra
+      - family-names: Marinazzo
+        given-names: Daniele
+    title: "Modeling brain dynamics in brain tumor patients using The Virtual Brain"
+    journal: eNeuro
+    year: 2018
+    doi: 10.1523/ENEURO.0083-18.2018
+  - type: article
+    authors:
+      - family-names: Aerts
+        given-names: Hannelore
+      - family-names: Marinazzo
+        given-names: Daniele
+    title: "Pre- and post-surgery brain tumor multimodal magnetic resonance imaging data optimized for large scale computational modelling"
+    journal: Scientific Data
+    year: 2022
+    doi: 10.1038/s41597-022-01806-4

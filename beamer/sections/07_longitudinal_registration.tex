@@ -1,0 +1,265 @@
+% =============================================================================
+% 07_longitudinal_registration.tex -- Longitudinal Registration (~6-8 frames)
+% =============================================================================
+
+\section{Longitudinal Registration}
+
+% ---- Frame 1 ----
+\begin{frame}{The Longitudinal Registration Problem}
+
+  \textbf{Goal:} Align pre-op and post-op T1w volumes to quantify
+  tissue displacement between sessions.
+
+  \bigskip
+
+  \textbf{Why it matters for brain mechanics:}
+  \begin{itemize}
+    \item The warp field $\bfu(\bfx)$ from diffeomorphic registration
+      approximates the \emph{empirical tissue displacement}
+    \item Jacobian $J(\bfx) = \det(\bfI + \nabla\bfu)$ encodes
+      \emph{local volume change}
+    \item These provide rare \alert{validation data} for FE model
+      predictions
+  \end{itemize}
+
+  \bigskip
+
+  \textbf{Challenge:} The resection cavity is a topological change ---
+  tissue that existed pre-op is gone post-op. Standard registration
+  tries to ``explain'' the cavity, producing artifacts.
+
+\end{frame}
+
+% ---- Frame 2 ----
+\begin{frame}{The Cavity Masking Problem}
+
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \textbf{Without masking:}
+    \begin{itemize}
+      \item SyN tries to deform healthy tissue into the surgical void
+      \item Produces unrealistic deformation near cavity
+      \item Contaminates displacement and Jacobian maps
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{With masking:}
+    \begin{itemize}
+      \item Cavity region excluded from cost function
+      \item SyN optimizes only on intact tissue
+      \item Biologically plausible deformation field
+    \end{itemize}
+
+    \column{0.45\textwidth}
+    % FIGURE SLOT: cavity mask overlay
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} Cavity mask\\
+        overlay on post-op T1w\\[2pt]
+        \texttt{FV-10\_cavity\_mask.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 3 ----
+\begin{frame}{Automatic Cavity Detection: Three Tiers}
+
+  \textbf{Tier 1 (default):} Tumor-mask prior
+  \begin{itemize}
+    \item Resample the pre-op tumor mask into post-op T1w space
+    \item Threshold at $p > 0.5$ $\to$ binary cavity seed
+    \item Reliable when a pre-op tumor mask exists
+  \end{itemize}
+
+  \medskip
+
+  \textbf{Tier 2 (fallback):} SynthSeg segmentation difference
+  \begin{itemize}
+    \item Compare pre-op and post-op \texttt{aparc+aseg}: brain $\to$
+      CSF = cavity
+    \item Sensitive to grid-size and label-convention mismatches
+  \end{itemize}
+
+  \medskip
+
+  \textbf{Tier 3 (optional):} RESSEG deep learning model
+  \cite{PerezGarcia2021}
+  \begin{itemize}
+    \item Enabled via \texttt{--resseg} flag
+    \item Trained for postoperative cavity segmentation, but may
+      mislocalize on atypical anatomies
+  \end{itemize}
+
+  \medskip
+
+  All tiers produce a binary mask $\to$ inverted for ANTs \texttt{-x}
+  flag (1 = healthy, 0 = cavity).
+  Method-aware caching: switching tier auto-clears the mask
+  \emph{and} all downstream outputs.
+
+\end{frame}
+
+% ---- Frame 3b: Diagnostic case study ----
+\begin{frame}{Case Study: When Cavity Masking Fails}
+
+  On sub-PAT16, RESSEG (Tier~3) produced a mask \alert{$\sim$50\,mm from
+  the actual resection cavity}:
+
+  \medskip
+
+  \begin{tabular}{lrr}
+    \toprule
+    \textbf{Mask} & \textbf{Centre of mass (mm)} & \textbf{Volume} \\
+    \midrule
+    Pre-op tumor (Aerts) & $(30,\; 37,\; {-}13)$ & 45.4\,cm$^3$ \\
+    RESSEG cavity        & $(53,\; {-}5,\; {-}21)$ & 18.6\,cm$^3$ \\
+    Tumor-prior (Tier~1) & $(31,\; 36,\; {-}13)$ & 45.2\,cm$^3$ \\
+    \bottomrule
+  \end{tabular}
+
+  \medskip
+
+  \textbf{Consequence cascade:}
+  \begin{itemize}
+    \item Overlap between RESSEG mask and warped tumor: \alert{0\%}
+    \item SyN excluded normal tissue, tried to match the actual cavity
+    \item Global T1w correlation: \alert{0.66} (expected $> 0.85$)
+    \item All 21 longitudinal outputs unreliable
+  \end{itemize}
+
+  \medskip
+
+  \alert{Lesson:} Empirical verification of cavity masks is essential
+  before downstream mechanics analysis.
+
+\end{frame}
+
+% ---- Frame 4 ----
+\begin{frame}[fragile]{ANTs SyN with Cost Function Masking}
+
+  \begin{lstlisting}
+antsRegistrationSyN.sh \
+  -d 3 \
+  -f postop_T1w.nii.gz \     # fixed (post-op)
+  -m preop_T1w.nii.gz  \     # moving (pre-op)
+  -x cavity_mask_inv.nii.gz \ # cost function mask
+  -t s \                      # SyN transform
+  -n 8                        # threads
+  \end{lstlisting}
+
+  \bigskip
+
+  \textbf{ANTs SyN} \cite{Avants2008}: symmetric diffeomorphic
+  registration with cross-correlation.
+
+  \bigskip
+
+  \textbf{Outputs:}
+  \begin{itemize}
+    \item Forward warp: $\bfu(\bfx)$ (pre-op $\to$ post-op)
+    \item Inverse warp: $\bfu^{-1}(\bfx)$ (post-op $\to$ pre-op)
+    \item Affine component: initial linear alignment
+  \end{itemize}
+
+\end{frame}
+
+% ---- Frame 5 ----
+\begin{frame}{Deformation Field Outputs}
+
+  From the SyN warp field we compute:
+
+  \bigskip
+
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Output} & \textbf{Definition} & \textbf{Interpretation} \\
+    \midrule
+    Displacement $|\bfu(\bfx)|$ &
+      $\sqrt{u_1^2 + u_2^2 + u_3^2}$ &
+      Tissue motion (mm) \\[4pt]
+    Jacobian $J(\bfx)$ &
+      $\det(\bfI + \nabla\bfu)$ &
+      $J > 1$: expansion \\
+    & & $J < 1$: contraction \\[4pt]
+    Cavity mask & Binary &
+      Resection void \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  \begin{itemize}
+    \item Displacement: where did tissue move, and how far?
+    \item Jacobian: which regions expanded (e.g., ventricles) or
+      contracted (e.g., near resection)?
+    \item ROI-level statistics: mean displacement and Jacobian
+      per brain region
+  \end{itemize}
+
+\end{frame}
+
+% ---- Frame 6 ----
+\begin{frame}{Warping Pre-op Derivatives to Post-op Space}
+
+  With the SyN warp, we can bring \emph{any} pre-op derivative into
+  post-op space for consistent voxel-wise comparison:
+
+  \bigskip
+
+  \begin{itemize}
+    \item T1w (linear interpolation)
+    \item FA, MD, AD, RD maps (linear interpolation)
+    \item \texttt{aparc+aseg} (nearest-neighbor interpolation)
+  \end{itemize}
+
+  \bigskip
+
+  \textbf{Result:} $\Delta\text{FA}(\bfx) = \text{FA}_{\text{post}}(\bfx)
+  - \text{FA}_{\text{pre}\to\text{post}}(\bfx)$ is now a geometrically
+  correct voxel-wise comparison, not contaminated by brain shift.
+
+  \bigskip
+
+  % FIGURE SLOT: warped pre-op T1w vs post-op T1w (checkerboard)
+  \begin{center}
+    \fbox{\parbox{0.7\textwidth}{\centering\small
+      \textit{GSlides:} Warped pre-op T1w aligned with post-op T1w\\
+      + displacement magnitude overlay\\[2pt]
+      \texttt{FV-11\_warped\_alignment.png}
+    }}
+  \end{center}
+
+\end{frame}
+
+% ---- Frame 7 ----
+\begin{frame}{Brain Mechanics Relevance of Deformation Fields}
+
+  \begin{itemize}
+    \item \textbf{Displacement field} $\bfu(\bfx)$: empirical tissue
+      motion between pre-op and post-op
+      \begin{itemize}
+        \item Validation target for FE model predictions
+        \item Spatial pattern reveals deformation mode
+          (compression, shear, rotation)
+      \end{itemize}
+    \item \textbf{Jacobian} $J(\bfx)$: local volume change
+      \begin{itemize}
+        \item $J > 1$ near ventricles $\Rightarrow$ post-op expansion
+        \item $J < 1$ near resection $\Rightarrow$ tissue collapse
+        \item Regions where $J \neq 1$ require large-deformation
+          formulations
+      \end{itemize}
+    \item \textbf{Cavity mask}: defines a new boundary condition surface
+      for the post-op FE model
+  \end{itemize}
+
+  \bigskip
+
+  \alert{These outputs bridge imaging and mechanics:}\\
+  registration $\to$ displacement $\to$ strain $\to$ stress
+  (via constitutive law).
+
+\end{frame}

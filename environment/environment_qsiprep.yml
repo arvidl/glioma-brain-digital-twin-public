@@ -1,0 +1,13 @@
+name: cas-qsiprep
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - setuptools<72   # QSIPrep requires pkg_resources, removed in setuptools>=72
+  # ANTs -- native ARM64 build from conda-forge
+  - ants>=2.5
+  - pip
+  - pip:
+    - qsiprep>=1.1
+    - toml              # required by qsiprep config serialization

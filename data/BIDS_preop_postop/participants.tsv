@@ -1,0 +1,2 @@
+participant_id	sex	age	tumor_type_and_grade	tumor_size_cm3	tumor_location	handedness	height_cm	weight_kg	fmri_tr_ms
+sub-PAT16	M	39	Anaplastic astrocytoma II-III	50.24	Fronto-temporal	1	181	90	2400

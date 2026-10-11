@@ -1,0 +1,36 @@
+Brain Tumor Connectomics Data - Pre/Post-operative Glioma Case Study
+
+This dataset contains pre- and post-operative MRI data for one glioma
+patient (sub-PAT16) from the Brain Tumor Connectomics (BTC) dataset.
+
+Source datasets (full 25-patient cohort available on OpenNeuro):
+- BTC_preop (OpenNeuro ds001226 v5.0.0): Pre-operative data
+- BTC_postop (OpenNeuro ds002080 v4.0.0): Post-operative data (~6 months later)
+
+Subject:
+- sub-PAT16: Male, 39y, 181 cm, 90 kg
+  Anaplastic astrocytoma WHO II-III, fronto-temporal, 50.24 cm3
+
+Sessions:
+- ses-preop: Pre-operative scan
+- ses-postop: Post-operative scan (~6 months after surgery)
+
+Modalities per session:
+- T1w MPRAGE anatomical scan (anat)
+- Resting-state fMRI (func, task-rest, TR = 2400 ms)
+- Multi-shell HARDI diffusion-weighted MRI (dwi, acq-AP)
+- Short DWI with reverse phase encoding (dwi, acq-PA)
+
+Phenotypic data:
+- participants.tsv: demographics, tumor type/grade/size/location, handedness,
+  height, weight, fMRI TR
+- sub-PAT16/sub-PAT16_sessions.tsv: session-level clinical & cognitive data
+  (48 columns) including psychosocial questionnaires (STAI, PSWQ, ERQ,
+  UCLA Loneliness), lifestyle factors, and CANTAB cognitive battery
+  (MOT, RTI, RVP, SOC, SSP) for both pre-op and post-op sessions
+
+References:
+Aerts H et al. eNeuro. 2018;5(3):ENEURO.0083-18.2018.
+Aerts H et al. Neuroimage. 2020;213:116738.
+
+Contact: Hannelore Aerts & Daniele Marinazzo (daniele.marinazzo@ugent.be)

@@ -1,0 +1,254 @@
+% =============================================================================
+% 06_processing_pipeline.tex -- Processing Pipeline (~8-10 frames)
+% =============================================================================
+
+\section{Processing Pipeline}
+
+% ---- Frame 1 ----
+\begin{frame}{Pipeline Overview}
+
+  \begin{center}
+  \begin{tikzpicture}[
+    pstep/.style={draw, rounded corners, minimum width=4.5cm,
+                  minimum height=0.7cm, align=center, font=\small},
+    arr/.style={-{Stealth[length=2.5mm]}, thick},
+    node distance=0.9cm
+  ]
+    \node[pstep] (s1) {Step 1: FreeSurfer segmentation};
+    \node[pstep, below=0.5cm of s1] (s2) {Step 2: fMRIPrep (BOLD)};
+    \node[pstep, below=0.5cm of s2] (s3) {Step 3: QSIPrep (DWI)};
+    \node[pstep, below=0.5cm of s3] (s4) {Step 4: MRtrix3 (CSD + tractography)};
+    \node[pstep, below=0.5cm of s4] (s5) {Step 5: Co-register to T1w};
+    \node[pstep, below=0.5cm of s5] (s5b) {\alert{Step 5b: Longitudinal registration (ANTs SyN + RESSEG)}};
+    \node[pstep, below=0.5cm of s5b] (s6) {Step 6: Compare pre-op vs post-op};
+    \node[pstep, below=0.5cm of s6] (s79) {Steps 7--9: SC, FC, rsHRF};
+
+    \draw[arr] (s1) -- (s2);
+    \draw[arr] (s2) -- (s3);
+    \draw[arr] (s3) -- (s4);
+    \draw[arr] (s4) -- (s5);
+    \draw[arr] (s5) -- (s5b);
+    \draw[arr] (s5b) -- (s6);
+    \draw[arr] (s6) -- (s79);
+  \end{tikzpicture}
+  \end{center}
+
+  \small
+  Steps 1--5 run per subject $\times$ session.
+  Steps 5b--9 are cross-session / per-subject.\\
+  \textbf{Self-contained:} only raw BIDS NIfTI + tumor mask required.\\
+  Orchestrated by \texttt{run\_pipeline.sh}.
+
+\end{frame}
+
+% ---- Frame 2 ----
+\begin{frame}[fragile]{Step 1: FreeSurfer Segmentation}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item FreeSurfer 8.1.0 \cite{Fischl2012}
+      \item \textbf{Pre-op:} standard \texttt{recon-all}
+      \item \textbf{Post-op:} \texttt{recon-all-clinical}\\
+        (SynthSeg -- robust to pathology)
+      \item Outputs: \texttt{aparc+aseg}, surfaces, cortical thickness
+      \item Additional: hippocampal subfields, thalamic nuclei, brainstem
+    \end{itemize}
+
+    \bigskip
+
+    \begin{lstlisting}
+bash scripts/run_freesurfer.sh \
+  --subject PAT16 --session preop
+    \end{lstlisting}
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: Freeview recon-all output
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} FreeSurfer\\
+        segmentation QC\\[2pt]
+        \texttt{FV-06\_freesurfer.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 3 ----
+\begin{frame}{Step 2: fMRIPrep -- BOLD Preprocessing}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item fMRIPrep 25.x \cite{Esteban2019}
+      \item Skull stripping, motion correction
+      \item BOLD-to-T1w boundary-based registration (BBR)
+      \item SyN-based susceptibility distortion correction
+        (single-PE BOLD)
+      \item Confound regression (aCompCor, motion params)
+      \item Output: preprocessed BOLD in T1w space
+    \end{itemize}
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: fMRIPrep report screenshot
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} fMRIPrep\\
+        SDC + registration QC\\[2pt]
+        \texttt{FV-07\_fmriprep.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 4 ----
+\begin{frame}{Step 3: QSIPrep -- DWI Preprocessing}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item QSIPrep 1.x \cite{Cieslak2021}
+      \item AP + PA pairs $\to$ \texttt{topup} for SDC
+      \item Eddy current correction, motion correction
+      \item Head motion QC (framewise displacement)
+      \item Output: corrected DWI, bval/bvec in T1w space
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{Advantage over healthy-volunteer project:}\\
+    Reverse-PE pairs enable more robust distortion correction
+    than fieldmap-less SyN.
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: QSIPrep output / DWI before-after SDC
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} QSIPrep\\
+        distortion correction\\[2pt]
+        \texttt{FV-08\_qsiprep.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 5 ----
+\begin{frame}{Step 4: MRtrix3 Reconstruction}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item MRtrix3 3.x \cite{Tournier2019}
+      \item Response function estimation (\texttt{dhollander})
+      \item Multi-shell multi-tissue CSD $\to$ fODFs
+      \item DTI fitting: FA, MD, AD, RD
+      \item Anatomically constrained tractography (ACT)
+      \item SIFT2 weighting $\to$ biologically plausible
+        connectome
+      \item \texttt{tck2connectome} $\to$ structural
+        connectivity matrix
+    \end{itemize}
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: tractography / fODF glyphs
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} Tractography\\
+        and fODF glyphs\\[2pt]
+        \texttt{FV-09\_tractography.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 6 ----
+\begin{frame}{Step 5: Co-Registration to T1w Space}
+
+  All derivatives registered to native T1w geometry:
+
+  \bigskip
+
+  \begin{tabular}{llll}
+    \toprule
+    \textbf{Source} & \textbf{Transform} & \textbf{Tool} & \textbf{Notes} \\
+    \midrule
+    FreeSurfer $\to$ T1w & Identity / \texttt{mri\_convert} &
+      FreeSurfer & Native space \\
+    BOLD $\to$ T1w & BBR (from fMRIPrep) &
+      fMRIPrep & 6-DOF rigid \\
+    DWI $\to$ T1w & FLIRT & FSL & 6-DOF rigid \\
+    FA/MD $\to$ T1w & Same as DWI & FSL + MRtrix3 & \\
+    fODFs $\to$ T1w & Affine + SH reorient &
+      MRtrix3 & Preserves SH basis \\
+    Tractogram $\to$ T1w & \texttt{tcktransform} &
+      MRtrix3 & Streamline coords \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  T1w is the untouched reference -- all other modalities are
+  resampled \emph{to} it, never the other way around.
+
+\end{frame}
+
+% ---- Frame 7 ----
+\begin{frame}[fragile]{Pipeline Orchestration}
+
+  \begin{lstlisting}
+bash scripts/run_pipeline.sh \
+  --subjects PAT16 \
+  --sessions preop,postop \
+  --clinical-postop \
+  --nthreads 8
+  \end{lstlisting}
+
+  \bigskip
+
+  \begin{itemize}
+    \item Runs Steps 1--5 for each (subject, session) pair
+    \item \texttt{--clinical-postop}: auto-select
+      \texttt{recon-all-clinical} for post-op sessions
+    \item \texttt{--skip-*} flags to resume from any step
+    \item Steps 5b--9 run per-subject after all sessions complete
+    \item \texttt{--resseg}: deep-learning cavity masking
+      (method-aware cache invalidation)
+  \end{itemize}
+
+\end{frame}
+
+% ---- Frame 8 ----
+\begin{frame}{Steps 7--9: Connectivity and rsHRF}
+
+  \begin{tabular}{llp{5cm}}
+    \toprule
+    \textbf{Step} & \textbf{Script} & \textbf{Output} \\
+    \midrule
+    7. SC & \texttt{compute\_tvb\_connectome.py} &
+      $83\times83$ Desikan-Killiany structural connectivity matrix
+      (SIFT2-weighted; TVB-ready) \\
+    8. FC & \texttt{compute\_fc.py} &
+      FC matrix (Pearson + Fisher-$z$), ROI time series,
+      confound-regressed \& bandpass-filtered \\
+    9. rsHRF & \texttt{compute\_rshrf.py} &
+      Voxel-wise FWHM, Height, Time2peak maps
+      (point-process deconvolution) \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  \begin{itemize}
+    \item All three steps use pipeline-internal scripts --
+      no external tools beyond the core environment
+    \item rsHRF replaces the external \texttt{rsHRF} BIDS App
+      (unmaintainable \texttt{pyyawt} dependency)
+    \item Outputs in \texttt{derivatives/connectivity/} and
+      \texttt{derivatives/rshrf/}
+  \end{itemize}
+
+\end{frame}

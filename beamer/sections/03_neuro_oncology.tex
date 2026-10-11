@@ -1,0 +1,168 @@
+% =============================================================================
+% 03_neuro_oncology.tex -- Neuro-Oncological Challenges (~5-6 frames)
+% =============================================================================
+
+\section{Neuro-Oncological Challenges}
+
+% ---- Frame 1 ----
+\begin{frame}{Diffuse Gliomas: Biology and Mechanics}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item Infiltrative growth along white matter tracts
+      \item Mass effect: compression of adjacent structures
+      \item Peritumoral edema: altered tissue properties
+      \item Blood-brain barrier disruption
+      \item Grades II--IV (WHO 2021 classification)
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{Mechanical consequences:}
+    \begin{itemize}
+      \item Elevated intracranial pressure (ICP)
+      \item Midline shift, ventricular compression
+      \item Altered viscoelastic properties in tumor zone
+    \end{itemize}
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: Freeview T1w with visible tumor (Google Slides)
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} T1w showing\\
+        glioma mass effect\\[2pt]
+        \texttt{FV-01\_t1w\_tumor.png}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 2 ----
+\begin{frame}{Surgical Context: Resection and Brain Shift}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \textbf{During surgery:}
+    \begin{itemize}
+      \item Craniotomy $\to$ CSF drainage $\to$ brain shift
+      \item Intraoperative deformation: 10--20\,mm
+        \cite{Clatz2005}
+      \item Tissue removal creates cavity
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{Post-operatively:}
+    \begin{itemize}
+      \item Resection cavity fills with CSF
+      \item Surrounding tissue remodels
+      \item Ventricles may expand
+      \item Connectivity reorganizes
+    \end{itemize}
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: pre-op vs post-op T1w comparison
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{GSlides:} Pre-op vs\\
+        post-op T1w overlay\\[2pt]
+        \texttt{FV-02\_preop\_postop.png}
+      }}
+    \end{center}
+  \end{columns}
+
+  \bigskip
+
+  \alert{Key insight:} The pre-op $\to$ post-op deformation is
+  \emph{empirically observable} from MRI --- a rare source of
+  ground-truth displacement data for brain mechanics.
+
+\end{frame}
+
+% ---- Frame 3 ----
+\begin{frame}{Why Standard Pipelines Fail}
+
+  Pathological anatomy breaks assumptions:
+
+  \bigskip
+
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Pipeline step} & \textbf{Assumption} & \textbf{Glioma violation} \\
+    \midrule
+    FreeSurfer \texttt{recon-all} & Normal cortical folding &
+      Tumor displaces cortex \\
+    Atlas registration & Diffeomorphic to template &
+      Missing tissue (cavity) \\
+    Tractography & Coherent WM tracts &
+      Infiltrated / disrupted fibers \\
+    DTI fitting & Gaussian diffusion &
+      Edema alters diffusion \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  \textbf{Our approach:}
+  \begin{itemize}
+    \item \texttt{recon-all-clinical} (SynthSeg) for post-op sessions
+    \item Automatic resection cavity masking for registration
+    \item Cost-function masking in ANTs SyN
+  \end{itemize}
+
+\end{frame}
+
+% ---- Frame 4 ----
+\begin{frame}{Longitudinal Monitoring: What Changes?}
+
+  Pre-operative $\to$ post-operative comparison reveals:
+
+  \bigskip
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \textbf{Structural changes:}
+    \begin{itemize}
+      \item Resection cavity volume
+      \item Ventricular expansion
+      \item Cortical thickness alterations
+      \item White matter tract disruption
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    \textbf{Quantifiable via MRI:}
+    \begin{itemize}
+      \item $\Delta$FA, $\Delta$MD maps (dMRI)
+      \item Displacement field $\bfu(\bfx)$ (SyN)
+      \item Jacobian $J(\bfx)$ (volume change)
+      \item $\Delta$SC, $\Delta$FC matrices
+    \end{itemize}
+  \end{columns}
+
+  \bigskip
+
+  \alert{$\Rightarrow$} Each quantity has a direct mechanical
+  interpretation: displacement, strain, material property change,
+  connectivity rewiring.
+
+\end{frame}
+
+% ---- Frame 5 ----
+\begin{frame}{Key References}
+
+  \begin{itemize}
+    \item \textbf{Aerts et al.\ (2018)} \cite{Aerts2018} --
+      Brain dynamics in glioma patients using The Virtual Brain
+    \item \textbf{Aerts et al.\ (2022)} \cite{Aerts2022} --
+      BTC dataset: pre- and post-operative mpMRI, OpenNeuro ds002080
+    \item \textbf{Zarodniuk et al.\ (2026)} \cite{Zarodniuk2026} --
+      Mechanical compression induces neuronal apoptosis
+    \item \textbf{Clatz et al.\ (2005)} \cite{Clatz2005} --
+      Nonrigid registration for intraoperative brain shift
+    \item \textbf{Miga et al.\ (2016)} \cite{Miga2016} --
+      Model-updated image guidance for brain shift compensation
+  \end{itemize}
+
+\end{frame}

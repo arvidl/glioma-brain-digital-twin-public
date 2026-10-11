@@ -1,0 +1,290 @@
+% =============================================================================
+% 09_math_challenges.tex -- Mathematical Challenges (~8-10 frames)
+% =============================================================================
+
+\section{Mathematical Challenges}
+
+% ---- Frame 1: Overview ----
+\begin{frame}{Seven + One Challenges}
+
+  From the companion concept note, adapted for glioma:
+
+  \bigskip
+
+  \begin{enumerate}
+    \item The ill-posed inverse problem
+    \item Constitutive modeling from dMRI
+    \item Registration error amplification
+    \item Boundary conditions and unknown forcing
+    \item Multimodal fusion across scales
+    \item Uncertainty quantification
+    \item Validation without ground truth
+    \item[\alert{8.}] \alert{Pathological tissue and post-surgical
+      deformation}
+  \end{enumerate}
+
+  \bigskip
+
+  Challenges 1--7 apply to any brain digital twin.\\
+  Challenge 8 is specific to neuro-oncology.
+
+\end{frame}
+
+% ---- Frame 2 ----
+\begin{frame}{Challenge 1: The Ill-Posed Inverse Problem}
+
+  The map from MRI observables to material parameters $\bftheta(\bfx)$
+  is \emph{non-unique}.
+
+  \bigskip
+
+  \begin{itemize}
+    \item Different $(\bftheta, \text{BC})$ combinations produce similar
+      predicted observables
+    \item Without direct displacement measurements (MRE, tagged MRI),
+      the inverse problem is severely underdetermined
+  \end{itemize}
+
+  \bigskip
+
+  \textbf{Research questions:}
+  \begin{itemize}
+    \item Identifiability of mechanical parameters from
+      sMRI + dMRI + fMRI alone?
+    \item Can SC + FC provide sufficient constraints?
+    \item \alert{Glioma advantage:} longitudinal deformation data
+      $\bfu(\bfx)$ from SyN provides additional constraints on
+      $\bftheta$
+  \end{itemize}
+
+\end{frame}
+
+% ---- Frame 3 ----
+\begin{frame}{Challenge 2: Constitutive Modeling from dMRI}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \begin{itemize}
+      \item DTI $\to$ mechanics mapping is a \emph{modeling assumption},
+        not measured \cite{Giordano2014}
+      \item Crossing fibers: DTI principal eigenvector is misleading
+      \item Partial volume contamination at boundaries
+      \item Exponential fiber stiffening:
+    \end{itemize}
+
+    \[
+      \psi_f = \frac{k_1}{2k_2}
+        \left[\exp(k_2 \langle I_4 - 1\rangle^2) - 1\right]
+    \]
+
+    Effect is small at physiological strains ($< 1\%$),\\
+    significant at traumatic strains ($> 10\%$).
+
+    \column{0.4\textwidth}
+    \alert{Glioma-specific:}
+    \begin{itemize}
+      \item Tumor infiltration alters diffusion properties
+      \item Peritumoral edema: increased MD, decreased FA
+      \item How to model the tumor--brain interface?
+      \item Constitutive law in the infiltration zone?
+    \end{itemize}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 4 ----
+\begin{frame}{Challenge 3: Registration and Error Amplification}
+
+  Mechanics depends on \emph{spatial derivatives} (strain $=$
+  gradient of displacement). Differentiation amplifies errors.
+
+  \bigskip
+
+  \begin{itemize}
+    \item Registration between modalities is itself ill-posed
+    \item Registration warps $\neq$ physical displacements
+    \item Diffeomorphic registration can introduce deformations the
+      mechanical model misinterprets
+  \end{itemize}
+
+  \bigskip
+
+  \textbf{Research questions:}
+  \begin{itemize}
+    \item How does registration uncertainty propagate to stress/strain?
+    \item ``Mechanical registration error'': predicted mechanics from
+      plausible alternative registrations?
+  \end{itemize}
+
+  \medskip
+
+  \alert{Glioma -- concrete example:} A mislocated cavity mask
+  ($\sim$50\,mm off) caused global T1w correlation to drop from
+  $> 0.85$ to 0.66, with displacement artifacts of 2.4\,mm at the
+  actual cavity.  All downstream mechanics would have been built on
+  corrupted deformation fields.
+
+\end{frame}
+
+% ---- Frame 5 ----
+\begin{frame}{Challenge 4: Boundary Conditions}
+
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \textbf{Standard BC surfaces:}
+    \begin{itemize}
+      \item Skull: fixed, sliding, or frictional?
+      \item Ventricles: pressure BC or FSI?
+      \item Falx / tentorium: rigid membrane?
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{Glioma-specific BC:}
+    \begin{itemize}
+      \item \alert{Resection cavity}: new free surface
+      \item Cavity filled with CSF: pressure BC?
+      \item Cavity wall: scarred tissue, different properties?
+      \item Tumor--brain interface: traction-free or infiltrated?
+    \end{itemize}
+
+    \column{0.4\textwidth}
+    % FIGURE SLOT: schematic of BC surfaces
+    \begin{center}
+      \fbox{\parbox{0.9\textwidth}{\centering\small
+        \textit{Figure:} Boundary\\
+        condition surfaces\\
+        (skull, ventricles,\\
+        cavity)\\[2pt]
+        \texttt{figures/bc\_schematic.pdf}
+      }}
+    \end{center}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 6 ----
+\begin{frame}{Challenge 5: Multimodal Fusion Across Scales}
+
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Modality} & \textbf{Scale} & \textbf{Timescale} \\
+    \midrule
+    dMRI & Sub-voxel ($\mu$m fibers) & Snapshot \\
+    fMRI & Voxel-level hemodynamics & Seconds \\
+    Mechanics & Mesh element ($\sim$mm) &
+      ms (waves) to months (remodeling) \\
+    \bottomrule
+  \end{tabular}
+
+  \bigskip
+
+  \textbf{Research questions:}
+  \begin{itemize}
+    \item Spatial scale mismatch: voxel dMRI $\to$ element FE mesh?
+    \item Can fMRI temporal information (pulsatile components)
+      inform mechanical BCs despite timescale gap?
+    \item Joint assimilation framework for sMRI + dMRI + fMRI into
+      a mechanical model?
+    \item \alert{Glioma:} tumor heterogeneity adds yet another scale
+      (microscopic infiltration $\to$ macroscopic deformation)
+  \end{itemize}
+
+\end{frame}
+
+% ---- Frame 7 ----
+\begin{frame}{Challenge 6: Uncertainty Quantification}
+
+  A credible digital twin must quantify uncertainty.
+  Bayesian inversion:
+  \[
+    p(\bftheta \mid \mathbf{y})
+      \propto p(\mathbf{y} \mid \bftheta)\,p(\bftheta)
+  \]
+  is attractive but computationally prohibitive with fine 3D meshes.
+
+  \bigskip
+
+  \textbf{Approaches:}
+  \begin{itemize}
+    \item Region-wise parameterization (reduce dimensionality)
+    \item Laplace approximation, variational inference
+    \item Surrogate models (polynomial chaos, neural network)
+    \item Sensitivity indices (Sobol, adjoint-based)
+  \end{itemize}
+
+  \bigskip
+
+  \alert{Glioma:} the tumor infiltration zone introduces additional
+  parametric uncertainty. ``How far does the tumor extend?'' is
+  itself uncertain, and this uncertainty propagates into the
+  mechanical prediction.
+
+\end{frame}
+
+% ---- Frame 8 ----
+\begin{frame}{Challenge 7: Validation}
+
+  Without MRE, how do we validate?
+
+  \bigskip
+
+  \begin{itemize}
+    \item Falsifiability: does anisotropic $\neq$ isotropic?
+    \item Cross-modal consistency: stress $\sim$ FC patterns?
+    \item Literature comparison: stiffness vs.\ published MRE values
+  \end{itemize}
+
+  \bigskip
+
+  \alert{Glioma advantage} (unique to this project):
+  \begin{itemize}
+    \item Pre-op $\to$ post-op displacement field from SyN
+      provides \emph{observed} deformation
+    \item Can the FE model predict the spatial pattern of
+      $|\bfu(\bfx)|$ under surgery-like boundary conditions?
+    \item Jacobian map: does the model predict correct
+      expansion/contraction pattern?
+  \end{itemize}
+
+  \medskip
+
+  \textbf{Sensitivity analysis as a feature:} The probabilistic tumor
+  mask enables running the simulation at thresholds $p > 0.3$, $0.5$,
+  $0.7$ -- quantifying how segmentation uncertainty propagates into
+  the predicted displacement field.
+
+  \medskip
+
+  This is the closest to \alert{ground-truth displacement data}
+  available from clinical MRI alone.
+
+\end{frame}
+
+% ---- Frame 9 ----
+\begin{frame}{Challenge 8: Pathological Tissue (Glioma-Specific)}
+
+  New mathematical difficulties introduced by pathology:
+
+  \bigskip
+
+  \begin{itemize}
+    \item \textbf{Tumor infiltration zone:} gradual transition from
+      normal to pathological tissue properties --- not a sharp boundary
+    \item \textbf{Mass effect modeling:} tumor growth as a volumetric
+      source term; reaction-diffusion PDE coupled to mechanics
+      \cite{Hormuth2021}
+    \item \textbf{Post-surgical remodeling:} time-dependent material
+      property changes (scarring, gliosis)
+    \item \textbf{Topological change:} pre-op domain $\neq$ post-op
+      domain (cavity creation)
+    \item \textbf{Data contamination:} diffusion/functional signals in
+      peri-tumoral region are pathologically altered, not just noisy
+  \end{itemize}
+
+  \bigskip
+
+  These are not just ``more noise'' --- they represent \emph{qualitative}
+  changes in the mathematical structure of the problem.
+
+\end{frame}

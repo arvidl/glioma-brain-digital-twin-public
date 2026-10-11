@@ -1,0 +1,223 @@
+% =============================================================================
+% 10_results_and_outlook.tex -- Results Preview and Outlook (~4-5 frames)
+% =============================================================================
+
+\section{Results and Outlook}
+
+% ---- Frame 1 ----
+\begin{frame}{Current Status}
+
+  \begin{tabular}{llc}
+    \toprule
+    \textbf{Component} & \textbf{Description} & \textbf{Status} \\
+    \midrule
+    Data & BIDS organization (PAT16 $\times$ 2 sessions)\footnote{Full cohort (25 patients) on OpenNeuro ds002080.} &
+      \checkmark \\
+    Step 1 & FreeSurfer segmentation (+ clinical) &
+      \checkmark \\
+    Step 2 & fMRIPrep BOLD preprocessing &
+      \checkmark \\
+    Step 3 & QSIPrep DWI preprocessing &
+      \checkmark \\
+    Step 4 & MRtrix3 CSD + tractography &
+      \checkmark \\
+    Step 5 & Co-registration to T1w &
+      \checkmark \\
+    Step 5b & Longitudinal registration (ANTs SyN) &
+      \checkmark\footnote{Re-run with tumor-prior (Tier~1) after
+      RESSEG cavity mask was found mislocated by $\sim$50\,mm.} \\
+    Step 6 & Pre-op vs post-op comparison &
+      \checkmark \\
+    Step 7 & Structural connectivity (TVB) &
+      \checkmark \\
+    Step 8 & Functional connectivity + ROI time series &
+      \checkmark \\
+    Step 9 & rsHRF estimation (point-process deconv.) &
+      \checkmark \\
+    \midrule
+    FE mesh & Gmsh tetrahedral meshing (192k tets) &
+      \checkmark \\
+    Materials & DTI-informed constitutive mapping &
+      \checkmark \\
+    Forward solver & FEniCSx brain shift simulation &
+      \checkmark \\
+    Mass effect & Tumour rebound body force model &
+      \checkmark \\
+    Validation & FEM vs.\ ANTs displacement comparison &
+      \checkmark \\
+    Coupling & FEM $\to$ Hopf neural mass (NB08) &
+      \checkmark \\
+    \bottomrule
+  \end{tabular}
+
+\end{frame}
+
+% ---- Frame 2 ----
+\begin{frame}{Preliminary Results: Longitudinal Deformation}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    % FIGURE SLOT: displacement magnitude map
+    \begin{center}
+      \fbox{\parbox{0.95\textwidth}{\centering\small
+        \textit{GSlides:} Displacement\\
+        magnitude map $|\bfu(\bfx)|$\\[2pt]
+        \texttt{FV-13\_displacement.png}
+      }}
+    \end{center}
+
+    \bigskip
+
+    \begin{itemize}
+      \item High displacement near cavity
+      \item Ventricular expansion (J $> 1$)
+      \item Far-field displacement decreases
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    % FIGURE SLOT: Jacobian map
+    \begin{center}
+      \fbox{\parbox{0.95\textwidth}{\centering\small
+        \textit{GSlides:} Jacobian\\
+        determinant map $J(\bfx)$\\[2pt]
+        \texttt{FV-14\_jacobian.png}
+      }}
+    \end{center}
+
+    \bigskip
+
+    \begin{itemize}
+      \item $J > 1$: expansion (ventricles)
+      \item $J < 1$: contraction (near resection)
+      \item $J \approx 1$: far from surgery
+    \end{itemize}
+  \end{columns}
+
+\end{frame}
+
+% ---- Frame 3 ----
+\begin{frame}{Preliminary Results: Connectivity Changes}
+
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \textbf{Structural connectivity:}
+    \begin{itemize}
+      \item Reduced streamline density in resected hemisphere
+      \item Disrupted tracts through tumor region
+      \item Contralateral connections preserved
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    \textbf{Functional connectivity:}
+    \begin{itemize}
+      \item Reorganized FC post-operatively
+      \item Changes correlate with displacement field
+      \item SC--FC coupling may increase or decrease
+    \end{itemize}
+  \end{columns}
+
+  \bigskip
+
+  % FIGURE SLOT: delta-SC, delta-FC matrices
+  \begin{center}
+    \fbox{\parbox{0.7\textwidth}{\centering\small
+      \textit{GSlides:} $\Delta$SC and $\Delta$FC matrices
+      (pre-op $-$ post-op)\\[2pt]
+      \texttt{FV-15\_delta\_sc\_fc.png}
+    }}
+  \end{center}
+
+\end{frame}
+
+% ---- Frame 4 ----
+\begin{frame}{Implementation: Completed Phases}
+
+  \small
+
+  \begin{enumerate}
+    \setcounter{enumi}{-1}
+    \item[\checkmark] \textbf{Environment fix} -- \texttt{gmsh} Python API
+      installed in \texttt{cas-fenics}
+
+    \item[\checkmark] \textbf{Cavity mask fix} -- re-ran longitudinal
+      registration with tumor-prior (Tier~1); cavity QC verified
+      (distance $< 0.8$\,mm from tumor centre)
+
+    \item[\checkmark] \textbf{Patient-specific 3D mesh} --
+      \texttt{aparc+aseg} $\to$ 192k tets, 45k nodes, 5 tissue tags;
+      coarse mesh via 3$\times$ subsampling ($\sim$3\,s solve)
+
+    \item[\checkmark] \textbf{DTI-informed material properties} --
+      FA $\to$ E, MD $\to$ $\nu$; $\lambda \in [1644, 6.8\!\times\!10^6]$,
+      $\mu \in [34, 2857]$\,Pa
+
+    \item[\checkmark] \textbf{FEniCSx brain shift simulation} --
+      P1 vector FEM, 131k DOFs, CG+GAMG solve in \alert{2.9\,s};
+      max $|\bfu| = 0.31$\,mm (gravity only)
+
+    \item[\checkmark] \textbf{Mass effect release} --
+      $\bff = (p_0/L)\,e^{-d/L}\,\hat{\mathbf{r}}$,
+      $p_0 = 1500$\,Pa; max $|\bfu| = 2.09$\,mm (\alert{6.8$\times$ improvement});
+      gap to empirical: $20\times \to 2.9\times$
+
+    \item[\checkmark] \textbf{Coupled mechanics--TVB} --
+      FEM $\to$ DK68 parcels $\to$ SC modulation (14\% reduction)
+      + bifurcation shift (2 subcritical regions)
+  \end{enumerate}
+
+\end{frame}
+
+% ---- Frame 5 ----
+\begin{frame}{Summary}
+
+  \begin{itemize}
+    \item Glioma patients provide \alert{uniquely valuable} data for
+      brain mechanics: longitudinal deformation from surgery
+    \item Fully self-contained mpMRI pipeline: 9 steps from raw
+      NIfTI to SC, FC, rsHRF, \textbf{and FEM simulation}
+    \item Cavity masking is critical but fragile: empirical
+      verification revealed and corrected a 50\,mm mask error
+    \item Patient-specific FEniCSx solve on DTI-informed mesh:
+      \textbf{192k tets, 131k DOFs, 2.9\,s solve time}
+    \item Mass effect release model closes gap from $20\times$ to
+      $2.9\times$: max $|\bfu| = 0.31 \to 2.09$\,mm
+      (empirical $\sim 6$\,mm)
+    \item Coupled FEM $\to$ Hopf neural mass:
+      deformation modulates SC (14\% reduction)
+      and bifurcation parameters (2 regions subcritical)
+    \item 7 + 1 mathematical challenges addressed with concrete,
+      reproducible implementations
+  \end{itemize}
+
+  \bigskip
+
+  \begin{center}
+    \large
+    \textbf{The glioma brain digital twin:}\\
+    harder to build, but richer to study.
+  \end{center}
+
+\end{frame}
+
+% ---- Acknowledgments ----
+\begin{frame}{Acknowledgments}
+
+  \begin{itemize}
+    \item CAS -- Centre for Advanced Study, Oslo
+    \item Mathematical Challenges in Brain Mechanics workshop organizers
+    \item Aerts et al.\ for the BTC dataset (OpenNeuro ds002080)
+    \item FreeSurfer, fMRIPrep, QSIPrep, MRtrix3, ANTs development teams
+    \item FEniCS/FEniCSx project
+  \end{itemize}
+
+  \bigskip
+
+  \textbf{Code:}\\
+  \url{https://github.com/arvidl/glioma-brain-digital-twin-public}
+
+  \bigskip
+
+  \textbf{Companion project} (healthy volunteer):\\
+  \url{https://github.com/arvidl/brain-digital-twin-finse2026}
+
+\end{frame}
