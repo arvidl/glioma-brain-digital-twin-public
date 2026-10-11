@@ -121,6 +121,9 @@ def download_from_github(dest: Path, url: str = RELEASE_URL) -> bool:
                 if not rel:
                     continue
                 target = dest / rel
+                # Metadata and sidecars tracked in git are newer than the zip copies.
+                if target.exists() and not rel.endswith((".nii", ".nii.gz")):
+                    continue
                 if member.is_dir():
                     target.mkdir(parents=True, exist_ok=True)
                 else:

@@ -20,6 +20,14 @@ def _default_bids_root() -> Path:
 
 _BIDS_ROOT = Path(os.environ.get("FINSE_BIDS_ROOT", str(_default_bids_root())))
 
+# Metadata is tracked in git; imaging comes from `python data/download_data.py`.
+requires_imaging = pytest.mark.skipif(
+    not (
+        _BIDS_ROOT / "sub-PAT16" / "ses-preop" / "anat" / "sub-PAT16_ses-preop_T1w.nii.gz"
+    ).exists(),
+    reason="BIDS imaging not downloaded (run: python data/download_data.py)",
+)
+
 
 @pytest.mark.skipif(not _BIDS_ROOT.exists(), reason=f"BIDS dataset not found at {_BIDS_ROOT}")
 class TestBIDSDataset:
@@ -59,6 +67,7 @@ class TestBIDSDataset:
         for subj_id in subject_ids:
             assert f"sub-{subj_id}" in content
 
+    @requires_imaging
     def test_t1w_preop_exists(self, bids_root, subject_ids):
         """Test T1w files exist for preop session."""
         for subj_id in subject_ids:
@@ -71,6 +80,7 @@ class TestBIDSDataset:
             )
             assert t1w_file.exists(), f"Missing: {t1w_file}"
 
+    @requires_imaging
     def test_t1w_postop_exists(self, bids_root, subject_ids):
         """Test T1w files exist for postop session."""
         for subj_id in subject_ids:
@@ -83,6 +93,7 @@ class TestBIDSDataset:
             )
             assert t1w_file.exists(), f"Missing: {t1w_file}"
 
+    @requires_imaging
     def test_tumor_masks_exist(self, bids_root, subject_ids):
         """Test tumor mask files exist in derivatives."""
         for subj_id in subject_ids:
@@ -97,14 +108,16 @@ class TestBIDSDataset:
                 )
                 assert mask_file.exists(), f"Missing: {mask_file}"
 
-    def test_bids_layout_loads(self, bids_layout):
+    @requires_imaging
+    def test_bids_layout_loads(self, bids_layout, subject_ids):
         """Test BIDSLayout can load the dataset."""
         if bids_layout is None:
             pytest.skip("BIDSLayout not available")
 
         subjects = bids_layout.get_subjects()
-        assert len(subjects) >= 2
+        assert set(subject_ids) <= set(subjects)
 
+    @requires_imaging
     def test_nifti_files_readable(self, bids_root, subject_ids):
         """Test that T1w NIfTI files are readable with nibabel."""
         import nibabel as nib

@@ -212,12 +212,8 @@ def compute_graph_metrics(M: np.ndarray, weighted: bool = True) -> dict:
     else:
         ge = nx.global_efficiency(G)
 
-    # Local efficiency (average of local efficiencies)
-    le = (
-        np.mean(list(nx.local_efficiency(G).values()))
-        if hasattr(nx, "local_efficiency")
-        else np.nan
-    )
+    # Local efficiency (networkx returns the average over nodes)
+    le = nx.local_efficiency(G)
 
     # Modularity via greedy community detection
     from networkx.algorithms.community import greedy_modularity_communities
