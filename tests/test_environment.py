@@ -12,9 +12,9 @@ def test_import_nibabel():
 
 def test_import_nilearn():
     """Test nilearn can be imported."""
-    import nilearn
+    import nilearn.datasets
 
-    assert hasattr(nilearn, "datasets")
+    assert hasattr(nilearn.datasets, "fetch_atlas_harvard_oxford")
 
 
 def test_import_networkx():
