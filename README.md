@@ -271,6 +271,7 @@ glioma-brain-digital-twin/
 ├── README.md                          # This file
 ├── INSTALLATION.md                    # Detailed setup guide (platform-specific)
 ├── LICENSE                            # MIT license (code)
+├── LICENSE-CONTENT.md                 # CC-BY-4.0 (text, figures) and data notice
 ├── CITATION.cff                       # How to cite this repository
 ├── environment/
 │   ├── environment.yml                # Conda environment (finse26) -- general + notebooks
@@ -627,7 +628,8 @@ For significant changes, please open an **Issue** first to discuss.
 - **Text, figures, and slides** (Markdown documentation, notebook narrative,
   generated figures, Beamer sources) are licensed under the
   **Creative Commons Attribution 4.0 International License**
-  ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)).
+  ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)) -- see
+  [`LICENSE-CONTENT.md`](./LICENSE-CONTENT.md).
 - **Imaging and phenotypic data** derive from the OpenNeuro Brain Tumor
   Connectomics datasets ([ds001226](https://openneuro.org/datasets/ds001226),
   [ds002080](https://openneuro.org/datasets/ds002080)), released under CC0.
