@@ -18,11 +18,15 @@ Usage
 """
 
 from __future__ import annotations
-from pathlib import Path
-from typing import Optional
+
 import zipfile
+from pathlib import Path
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
+
+if TYPE_CHECKING:
+    import matplotlib.pyplot as plt
 
 try:
     import scipy.io as sio
@@ -31,6 +35,7 @@ except ImportError:
 
 
 # ─── Loaders ─────────────────────────────────────────────────────────────────
+
 
 def load_sc(
     bids_root: str | Path,
@@ -70,6 +75,7 @@ def load_sc(
             if mat_files:
                 with zf.open(mat_files[0]) as f:
                     import io
+
                     mat = sio.loadmat(io.BytesIO(f.read()))
                     for key in ("SC", "weights", "tract_lengths"):
                         if key in mat:
@@ -77,9 +83,7 @@ def load_sc(
     raise FileNotFoundError(f"SC not found in {base}")
 
 
-def load_fc(
-    bids_root: str | Path, subject: str, session: str
-) -> np.ndarray:
+def load_fc(bids_root: str | Path, subject: str, session: str) -> np.ndarray:
     """Load functional connectivity matrix.
 
     Returns
@@ -87,7 +91,7 @@ def load_fc(
     FC : (N, N) float array
     """
     base = Path(bids_root) / "derivatives" / "TVB" / f"sub-{subject}" / f"ses-{session}"
-    mat  = sio.loadmat(str(base / "FC.mat"))
+    mat = sio.loadmat(str(base / "FC.mat"))
     for key in ("FC", "fc", "R", "corr"):
         if key in mat:
             return mat[key].astype(float)
@@ -97,23 +101,18 @@ def load_fc(
     raise KeyError("Cannot locate FC matrix in FC.mat")
 
 
-def load_roi_timeseries(
-    bids_root: str | Path, subject: str, session: str
-) -> np.ndarray:
+def load_roi_timeseries(bids_root: str | Path, subject: str, session: str) -> np.ndarray:
     """Load ROI BOLD time series from ROIts.dat.
 
     Returns
     -------
     ts : (T, N) float array  (T = time points, N = ROIs)
     """
-    p = (Path(bids_root) / "derivatives" / "TVB"
-         / f"sub-{subject}" / f"ses-{session}" / "ROIts.dat")
+    p = Path(bids_root) / "derivatives" / "TVB" / f"sub-{subject}" / f"ses-{session}" / "ROIts.dat"
     return np.loadtxt(str(p))
 
 
-def load_hrf_params(
-    bids_root: str | Path, subject: str, session: str
-) -> np.ndarray:
+def load_hrf_params(bids_root: str | Path, subject: str, session: str) -> np.ndarray:
     """Load rsHRF parameters per ROI from HRF.csv.
 
     Returns
@@ -121,12 +120,13 @@ def load_hrf_params(
     hrf : (N, P) array – N ROIs × P HRF parameters
     """
     import pandas as pd
-    p = (Path(bids_root) / "derivatives" / "TVB"
-         / f"sub-{subject}" / f"ses-{session}" / "HRF.csv")
+
+    p = Path(bids_root) / "derivatives" / "TVB" / f"sub-{subject}" / f"ses-{session}" / "HRF.csv"
     return pd.read_csv(str(p), header=None).values
 
 
 # ─── Matrix utilities ─────────────────────────────────────────────────────────
+
 
 def threshold_matrix(
     M: np.ndarray,
@@ -168,6 +168,7 @@ def normalise_sc(SC: np.ndarray) -> np.ndarray:
 
 
 # ─── Graph metrics ─────────────────────────────────────────────────────────────
+
 
 def compute_graph_metrics(M: np.ndarray, weighted: bool = True) -> dict:
     """Compute common graph-theoretic metrics using networkx.
@@ -212,26 +213,32 @@ def compute_graph_metrics(M: np.ndarray, weighted: bool = True) -> dict:
         ge = nx.global_efficiency(G)
 
     # Local efficiency (average of local efficiencies)
-    le = np.mean(list(nx.local_efficiency(G).values())) if hasattr(nx, 'local_efficiency') else np.nan
+    le = (
+        np.mean(list(nx.local_efficiency(G).values()))
+        if hasattr(nx, "local_efficiency")
+        else np.nan
+    )
 
     # Modularity via greedy community detection
     from networkx.algorithms.community import greedy_modularity_communities
+
     communities = list(greedy_modularity_communities(G, weight="weight"))
-    modularity  = nx.community.quality.modularity(G, communities, weight="weight")
+    modularity = nx.community.quality.modularity(G, communities, weight="weight")
 
     return {
-        "degree_strength":   strength,
-        "clustering":        clustering,
-        "betweenness":       betweenness,
+        "degree_strength": strength,
+        "clustering": clustering,
+        "betweenness": betweenness,
         "global_efficiency": ge,
-        "local_efficiency":  le,
-        "modularity":        modularity,
-        "communities":       communities,
-        "n_communities":     len(communities),
+        "local_efficiency": le,
+        "modularity": modularity,
+        "communities": communities,
+        "n_communities": len(communities),
     }
 
 
 # ─── Visualisation ─────────────────────────────────────────────────────────────
+
 
 def compare_matrices(
     M1: np.ndarray,
@@ -243,11 +250,11 @@ def compare_matrices(
 ) -> "plt.Figure":
     """Plot two matrices side by side with a shared colour scale."""
     import matplotlib.pyplot as plt
+
     vmin = min(M1.min(), M2.min())
     vmax = max(M1.max(), M2.max())
 
-    fig, axes = plt.subplots(1, 3, figsize=figsize,
-                             gridspec_kw={"width_ratios": [1, 1, 0.05]})
+    fig, axes = plt.subplots(1, 3, figsize=figsize, gridspec_kw={"width_ratios": [1, 1, 0.05]})
     for ax, M, label in zip(axes[:2], (M1, M2), labels):
         im = ax.imshow(M, cmap=cmap, vmin=vmin, vmax=vmax, aspect="auto")
         ax.set_title(label, fontsize=12, fontweight="bold")

@@ -43,9 +43,12 @@ except ImportError:
     resample_to_img = None
 
 
-def _match_grid(data: np.ndarray, data_img: nib.Nifti1Image,
-                ref_img: nib.Nifti1Image,
-                interpolation: str = "nearest") -> np.ndarray:
+def _match_grid(
+    data: np.ndarray,
+    data_img: nib.Nifti1Image,
+    ref_img: nib.Nifti1Image,
+    interpolation: str = "nearest",
+) -> np.ndarray:
     """Resample *data* (with header from *data_img*) onto *ref_img* grid."""
     if data.shape[:3] == ref_img.shape[:3]:
         return data
@@ -58,19 +61,31 @@ def _match_grid(data: np.ndarray, data_img: nib.Nifti1Image,
 
 # FreeSurfer Desikan-Killiany label names for key ROIs
 DK_LABELS = {
-    2: "Left-Cerebral-WM", 3: "Left-Cerebral-Cortex",
-    4: "Left-Lateral-Ventricle", 5: "Left-Inf-Lat-Vent",
-    7: "Left-Cerebellum-WM", 8: "Left-Cerebellum-Cortex",
-    10: "Left-Thalamus", 11: "Left-Caudate",
-    12: "Left-Putamen", 13: "Left-Pallidum",
-    17: "Left-Hippocampus", 18: "Left-Amygdala",
+    2: "Left-Cerebral-WM",
+    3: "Left-Cerebral-Cortex",
+    4: "Left-Lateral-Ventricle",
+    5: "Left-Inf-Lat-Vent",
+    7: "Left-Cerebellum-WM",
+    8: "Left-Cerebellum-Cortex",
+    10: "Left-Thalamus",
+    11: "Left-Caudate",
+    12: "Left-Putamen",
+    13: "Left-Pallidum",
+    17: "Left-Hippocampus",
+    18: "Left-Amygdala",
     26: "Left-Accumbens-area",
-    41: "Right-Cerebral-WM", 42: "Right-Cerebral-Cortex",
-    43: "Right-Lateral-Ventricle", 44: "Right-Inf-Lat-Vent",
-    46: "Right-Cerebellum-WM", 47: "Right-Cerebellum-Cortex",
-    49: "Right-Thalamus", 50: "Right-Caudate",
-    51: "Right-Putamen", 52: "Right-Pallidum",
-    53: "Right-Hippocampus", 54: "Right-Amygdala",
+    41: "Right-Cerebral-WM",
+    42: "Right-Cerebral-Cortex",
+    43: "Right-Lateral-Ventricle",
+    44: "Right-Inf-Lat-Vent",
+    46: "Right-Cerebellum-WM",
+    47: "Right-Cerebellum-Cortex",
+    49: "Right-Thalamus",
+    50: "Right-Caudate",
+    51: "Right-Putamen",
+    52: "Right-Pallidum",
+    53: "Right-Hippocampus",
+    54: "Right-Amygdala",
     58: "Right-Accumbens-area",
 }
 
@@ -84,9 +99,7 @@ def load_nifti(path: Path) -> tuple[np.ndarray, nib.Nifti1Image] | None:
     return np.asarray(img.dataobj), img
 
 
-def compute_roi_volumes(
-    aparc_data: np.ndarray, voxel_vol_mm3: float
-) -> dict[int, float]:
+def compute_roi_volumes(aparc_data: np.ndarray, voxel_vol_mm3: float) -> dict[int, float]:
     """Compute volume in mm^3 for each label in the aparc+aseg volume."""
     labels, counts = np.unique(aparc_data.astype(int), return_counts=True)
     return {int(lab): int(cnt) * voxel_vol_mm3 for lab, cnt in zip(labels, counts)}
@@ -105,19 +118,21 @@ def compute_dti_roi_stats(
         vals = vals[np.isfinite(vals)]
         if len(vals) == 0:
             continue
-        stats[lab] = {"mean": float(np.mean(vals)), "std": float(np.std(vals)),
-                      "n_voxels": int(mask.sum())}
+        stats[lab] = {
+            "mean": float(np.mean(vals)),
+            "std": float(np.std(vals)),
+            "n_voxels": int(mask.sum()),
+        }
     return stats
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Compare pre-op vs post-op derivatives"
-    )
+    parser = argparse.ArgumentParser(description="Compare pre-op vs post-op derivatives")
     parser.add_argument("--subject", required=True, help="Subject ID (e.g. PAT16)")
     parser.add_argument(
-        "--project-dir", default=None,
-        help="Project root (default: auto-detect from script location)"
+        "--project-dir",
+        default=None,
+        help="Project root (default: auto-detect from script location)",
     )
     args = parser.parse_args()
 
@@ -142,7 +157,9 @@ def main():
     print("=" * 60)
     print(f" Pre-op dir    : {preop_dir}")
     print(f" Post-op dir   : {postop_dir}")
-    print(f" Longitudinal  : {'YES (using warped pre-op data)' if has_longitudinal else 'NO (direct comparison)'}")
+    print(
+        f" Longitudinal  : {'YES (using warped pre-op data)' if has_longitudinal else 'NO (direct comparison)'}"
+    )
     print(f" Output dir    : {out_dir}")
     print("=" * 60)
 
@@ -223,8 +240,10 @@ def main():
         data_post, _ = post_result
 
         if data_pre.shape != data_post.shape:
-            print(f"  {metric.upper()}: WARNING -- shape mismatch "
-                  f"({data_pre.shape} vs {data_post.shape}), skipping")
+            print(
+                f"  {metric.upper()}: WARNING -- shape mismatch "
+                f"({data_pre.shape} vs {data_post.shape}), skipping"
+            )
             continue
 
         delta = data_post.astype(np.float32) - data_pre.astype(np.float32)
@@ -246,17 +265,18 @@ def main():
                 "max": float(np.max(masked_delta)),
                 "n_voxels": int(brain_mask.sum()),
             }
-            print(f"         mean={np.mean(masked_delta):.4f}, "
-                  f"std={np.std(masked_delta):.4f}, "
-                  f"range=[{np.min(masked_delta):.4f}, {np.max(masked_delta):.4f}]")
+            print(
+                f"         mean={np.mean(masked_delta):.4f}, "
+                f"std={np.std(masked_delta):.4f}, "
+                f"range=[{np.min(masked_delta):.4f}, {np.max(masked_delta):.4f}]"
+            )
 
         # ROI-level stats if aparc+aseg available
         if aparc_pre is not None:
             aparc_for_dti = _match_grid(
                 aparc_pre[0], aparc_pre[1], img_pre, interpolation="nearest"
             )
-            roi_labels = [lab for lab in DK_LABELS if lab in
-                          np.unique(aparc_for_dti.astype(int))]
+            roi_labels = [lab for lab in DK_LABELS if lab in np.unique(aparc_for_dti.astype(int))]
             pre_roi = compute_dti_roi_stats(data_pre, aparc_for_dti, roi_labels)
             post_roi = compute_dti_roi_stats(data_post, aparc_for_dti, roi_labels)
             roi_delta = {}
@@ -293,11 +313,12 @@ def main():
                 "n_voxels_gt_10mm": int(np.sum(vals > 10.0)),
             }
             d = results["analyses"]["displacement"]
-            print(f"  Displacement: mean={d['mean_mm']:.2f} mm, "
-                  f"max={d['max_mm']:.2f} mm, "
-                  f"95th pctl={d['p95_mm']:.2f} mm")
-            print(f"  Voxels > 5 mm: {d['n_voxels_gt_5mm']}, "
-                  f"> 10 mm: {d['n_voxels_gt_10mm']}")
+            print(
+                f"  Displacement: mean={d['mean_mm']:.2f} mm, "
+                f"max={d['max_mm']:.2f} mm, "
+                f"95th pctl={d['p95_mm']:.2f} mm"
+            )
+            print(f"  Voxels > 5 mm: {d['n_voxels_gt_5mm']}, " f"> 10 mm: {d['n_voxels_gt_10mm']}")
     else:
         print("  Displacement map not available (run register_longitudinal.sh)")
 
@@ -309,16 +330,15 @@ def main():
                 "mean": round(float(np.mean(jac_valid)), 4),
                 "min": round(float(np.min(jac_valid)), 4),
                 "max": round(float(np.max(jac_valid)), 4),
-                "pct_expanding": round(
-                    100 * float(np.sum(jac_valid > 1.05)) / len(jac_valid), 2),
-                "pct_contracting": round(
-                    100 * float(np.sum(jac_valid < 0.95)) / len(jac_valid), 2),
+                "pct_expanding": round(100 * float(np.sum(jac_valid > 1.05)) / len(jac_valid), 2),
+                "pct_contracting": round(100 * float(np.sum(jac_valid < 0.95)) / len(jac_valid), 2),
             }
             j = results["analyses"]["jacobian"]
-            print(f"  Jacobian: mean={j['mean']:.4f}, "
-                  f"range=[{j['min']:.4f}, {j['max']:.4f}]")
-            print(f"  Expanding (J>1.05): {j['pct_expanding']:.1f}%, "
-                  f"Contracting (J<0.95): {j['pct_contracting']:.1f}%")
+            print(f"  Jacobian: mean={j['mean']:.4f}, " f"range=[{j['min']:.4f}, {j['max']:.4f}]")
+            print(
+                f"  Expanding (J>1.05): {j['pct_expanding']:.1f}%, "
+                f"Contracting (J<0.95): {j['pct_contracting']:.1f}%"
+            )
     else:
         print("  Jacobian map not available")
 
@@ -353,6 +373,7 @@ def main():
     if fc_pre_path.exists() and fc_post_path.exists():
         try:
             from scipy.io import loadmat
+
             fc_pre = loadmat(str(fc_pre_path))
             fc_post = loadmat(str(fc_post_path))
             fc_key = [k for k in fc_pre.keys() if not k.startswith("_")][0]
@@ -366,9 +387,11 @@ def main():
                 "n_connections_strengthened": int(np.sum(delta_fc > 0.1)),
                 "shape": list(delta_fc.shape),
             }
-            print(f"  FC delta: mean={np.mean(delta_fc):.4f}, "
-                  f"weakened={np.sum(delta_fc < -0.1)}, "
-                  f"strengthened={np.sum(delta_fc > 0.1)}")
+            print(
+                f"  FC delta: mean={np.mean(delta_fc):.4f}, "
+                f"weakened={np.sum(delta_fc < -0.1)}, "
+                f"strengthened={np.sum(delta_fc > 0.1)}"
+            )
         except Exception as e:
             print(f"  FC comparison failed: {e}")
     else:

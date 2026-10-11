@@ -30,8 +30,6 @@ Requires: nibabel, numpy, scipy, scikit-image, gmsh, meshio, dolfinx
 from __future__ import annotations
 
 import argparse
-import os
-import sys
 import time
 from pathlib import Path
 
@@ -58,30 +56,50 @@ TAG_NAMES = {
 
 # FreeSurfer label sets (from FreeSurferColorLUT.txt)
 _FS_WM_LABELS = {
-    2, 41,        # Left/Right-Cerebral-White-Matter
-    77, 78, 79,   # WM-hypointensities
-    251, 252, 253, 254, 255,  # Corpus callosum
+    2,
+    41,  # Left/Right-Cerebral-White-Matter
+    77,
+    78,
+    79,  # WM-hypointensities
+    251,
+    252,
+    253,
+    254,
+    255,  # Corpus callosum
 }
 
 _FS_CORTICAL = set(range(1000, 1036)) | set(range(2000, 2036))
 
 _FS_CSF_LABELS = {
-    0,            # Unknown / background (outside brain)
-    4, 5,         # Left/Right-Lateral-Ventricle
-    14, 15,       # 3rd/4th-Ventricle
-    24,           # CSF
-    43, 44,       # Left/Right-Inf-Lat-Vent
-    72,           # 5th-Ventricle
+    0,  # Unknown / background (outside brain)
+    4,
+    5,  # Left/Right-Lateral-Ventricle
+    14,
+    15,  # 3rd/4th-Ventricle
+    24,  # CSF
+    43,
+    44,  # Left/Right-Inf-Lat-Vent
+    72,  # 5th-Ventricle
 }
 
 _FS_DEEP_LABELS = {
-    10, 11, 12, 13,       # Left thalamus, caudate, putamen, pallidum
-    17, 18,               # Left hippocampus, amygdala
-    26, 28,               # Left accumbens, ventral DC
-    49, 50, 51, 52,       # Right thalamus, caudate, putamen, pallidum
-    53, 54,               # Right hippocampus, amygdala
-    58, 60,               # Right accumbens, ventral DC
-    16,                   # Brain-Stem
+    10,
+    11,
+    12,
+    13,  # Left thalamus, caudate, putamen, pallidum
+    17,
+    18,  # Left hippocampus, amygdala
+    26,
+    28,  # Left accumbens, ventral DC
+    49,
+    50,
+    51,
+    52,  # Right thalamus, caudate, putamen, pallidum
+    53,
+    54,  # Right hippocampus, amygdala
+    58,
+    60,  # Right accumbens, ventral DC
+    16,  # Brain-Stem
 }
 
 
@@ -117,7 +135,6 @@ def overlay_tumor(
     The tumor mask may live in a different affine (e.g. native T1 vs
     co-registered T1w). We resample into the aseg voxel grid.
     """
-    import nibabel as nib
     from nibabel.processing import resample_from_to
 
     tumor_resampled = resample_from_to(tumor_nii, aseg_nii, order=0)
@@ -129,6 +146,7 @@ def overlay_tumor(
 # ---------------------------------------------------------------------------
 # Surface extraction
 # ---------------------------------------------------------------------------
+
 
 def extract_brain_surface(tissue_vol: np.ndarray, affine: np.ndarray):
     """Extract the outer brain surface using marching cubes.
@@ -158,9 +176,8 @@ def simplify_surface(verts, faces, target_faces: int = 80000):
 
     try:
         import pyvista as pv
-        mesh = pv.PolyData(verts, np.column_stack([
-            np.full(len(faces), 3, dtype=np.int32), faces
-        ]))
+
+        mesh = pv.PolyData(verts, np.column_stack([np.full(len(faces), 3, dtype=np.int32), faces]))
         ratio = target_faces / len(faces)
         decimated = mesh.decimate(1.0 - ratio)
         return (
@@ -175,6 +192,7 @@ def simplify_surface(verts, faces, target_faces: int = 80000):
 # ---------------------------------------------------------------------------
 # Gmsh volume meshing
 # ---------------------------------------------------------------------------
+
 
 def create_volume_mesh(
     verts: np.ndarray,
@@ -208,14 +226,16 @@ def create_volume_mesh(
 
     node_tags = np.arange(1, len(verts) + 1, dtype=np.int64)
     gmsh.model.mesh.addNodes(
-        2, s_tag,
+        2,
+        s_tag,
         node_tags,
         verts.ravel(),
     )
 
     elem_tags = np.arange(1, len(faces) + 1, dtype=np.int64)
     gmsh.model.mesh.addElementsByType(
-        s_tag, 2,  # type 2 = 3-node triangle
+        s_tag,
+        2,  # type 2 = 3-node triangle
         elem_tags,
         (faces + 1).ravel().astype(np.int64),  # 1-based
     )
@@ -260,6 +280,7 @@ def create_volume_mesh(
 # Cell tagging from label volume
 # ---------------------------------------------------------------------------
 
+
 def tag_cells_from_volume(
     tet_points: np.ndarray,
     tet_cells: np.ndarray,
@@ -301,8 +322,9 @@ def tag_cells_from_volume(
 # Boundary facet tagging
 # ---------------------------------------------------------------------------
 
-FACET_OUTER = 1   # skull / outer brain surface
+FACET_OUTER = 1  # skull / outer brain surface
 FACET_CAVITY = 2  # resection cavity surface
+
 
 def tag_boundary_facets(
     tet_points: np.ndarray,
@@ -356,6 +378,7 @@ def tag_boundary_facets(
 # Export to XDMF for DOLFINx
 # ---------------------------------------------------------------------------
 
+
 def export_xdmf(
     tet_points: np.ndarray,
     tet_cells: np.ndarray,
@@ -400,37 +423,49 @@ def export_xdmf(
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Convert FreeSurfer aparc+aseg to tagged FE mesh for DOLFINx",
     )
     parser.add_argument(
-        "--aseg", required=True,
+        "--aseg",
+        required=True,
         help="Path to aparc+aseg NIfTI (in T1w space)",
     )
     parser.add_argument(
-        "--tumor", default=None,
+        "--tumor",
+        default=None,
         help="Path to binary tumor mask NIfTI (optional)",
     )
     parser.add_argument(
-        "--output", required=True,
+        "--output",
+        required=True,
         help="Output path (e.g. derivatives/meshes/sub-PAT16_brain.xdmf)",
     )
     parser.add_argument(
-        "--mesh-size", type=float, default=3.0,
+        "--mesh-size",
+        type=float,
+        default=3.0,
         help="Target tetrahedral element size in mm (default: 3.0)",
     )
     parser.add_argument(
-        "--target-faces", type=int, default=80000,
+        "--target-faces",
+        type=int,
+        default=80000,
         help="Target surface triangle count after decimation (default: 80000)",
     )
     parser.add_argument(
-        "--subsample", type=int, default=1,
+        "--subsample",
+        type=int,
+        default=1,
         help="Subsample the label volume by this factor before meshing (default: 1, no subsampling). "
-             "Use 2 or 3 for coarser meshes suitable for interactive notebooks.",
+        "Use 2 or 3 for coarser meshes suitable for interactive notebooks.",
     )
     parser.add_argument(
-        "--verbosity", type=int, default=3,
+        "--verbosity",
+        type=int,
+        default=3,
         help="Gmsh verbosity level 0-5 (default: 3)",
     )
     args = parser.parse_args()
@@ -461,6 +496,7 @@ def main():
         s = args.subsample
         print(f"  Subsampling volume by factor {s} (nearest-neighbor)")
         from scipy.ndimage import zoom
+
         tissue_vol = zoom(tissue_vol, 1.0 / s, order=0).astype(np.int32)
         # Update affine to reflect the larger voxels
         scale = np.diag([s, s, s, 1.0]).astype(float)
@@ -481,7 +517,8 @@ def main():
     # 5. Volume meshing with Gmsh
     print("[4/6] Generating tetrahedral volume mesh (Gmsh)")
     tet_points, tet_cells = create_volume_mesh(
-        verts, faces,
+        verts,
+        faces,
         mesh_size=args.mesh_size,
         verbosity=args.verbosity,
     )

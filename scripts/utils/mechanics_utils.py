@@ -18,6 +18,7 @@ Usage
 """
 
 from __future__ import annotations
+
 import numpy as np
 
 # FEniCSx imports (deferred so that the module can still be imported even
@@ -25,7 +26,8 @@ import numpy as np
 # point of use).
 _DOLFINX_AVAILABLE = False
 try:
-    import dolfinx                                   # noqa: F401
+    import dolfinx  # noqa: F401
+
     _DOLFINX_AVAILABLE = True
 except ImportError:
     pass
@@ -46,23 +48,24 @@ def _require_dolfinx():
 # References:
 #   Miga et al. (2001), Weickenmeier et al. (2017), Budday et al. (2019)
 TISSUE_PROPERTIES = {
-    "white_matter":  {"E": 2500.0, "nu": 0.45, "rho": 1040.0},
-    "gray_matter":   {"E": 1500.0, "nu": 0.45, "rho": 1040.0},
-    "glioma_II":     {"E": 8000.0, "nu": 0.40, "rho": 1050.0},
-    "glioma_III":    {"E": 15000.0, "nu": 0.38, "rho": 1060.0},
-    "edema":         {"E":  500.0, "nu": 0.49, "rho": 1020.0},
-    "csf":           {"E":  100.0, "nu": 0.49, "rho": 1007.0},
+    "white_matter": {"E": 2500.0, "nu": 0.45, "rho": 1040.0},
+    "gray_matter": {"E": 1500.0, "nu": 0.45, "rho": 1040.0},
+    "glioma_II": {"E": 8000.0, "nu": 0.40, "rho": 1050.0},
+    "glioma_III": {"E": 15000.0, "nu": 0.38, "rho": 1060.0},
+    "edema": {"E": 500.0, "nu": 0.49, "rho": 1020.0},
+    "csf": {"E": 100.0, "nu": 0.49, "rho": 1007.0},
 }
 
 
 def lame_parameters(E: float, nu: float) -> tuple[float, float]:
     """Convert Young's modulus E and Poisson ratio nu to Lamé parameters λ, μ."""
     lam = E * nu / ((1 + nu) * (1 - 2 * nu))
-    mu  = E / (2 * (1 + nu))
+    mu = E / (2 * (1 + nu))
     return lam, mu
 
 
 # ─── Mesh helpers ─────────────────────────────────────────────────────────────
+
 
 class BrainMesh:
     """Factory for simple brain-like FEniCSx meshes."""
@@ -74,9 +77,10 @@ class BrainMesh:
     ):
         """Create a box mesh approximating brain dimensions (m)."""
         _require_dolfinx()
-        from dolfinx.mesh import create_box, CellType
-        from mpi4py import MPI
         import numpy as np
+        from dolfinx.mesh import CellType, create_box
+        from mpi4py import MPI
+
         mesh = create_box(
             MPI.COMM_WORLD,
             [np.zeros(3), np.array(dims)],
@@ -136,6 +140,7 @@ class BrainMesh:
 
 # ─── Linear elasticity model ──────────────────────────────────────────────────
 
+
 class LinearBrainModel:
     """Isotropic linear-elastic model for brain tissue mechanics.
 
@@ -160,78 +165,91 @@ class LinearBrainModel:
         body_force: tuple[float, float, float] = (0.0, 0.0, -9.81 * 1040.0),
     ):
         _require_dolfinx()
-        self.mesh  = mesh
-        props      = TISSUE_PROPERTIES[tissue]
+        self.mesh = mesh
+        props = TISSUE_PROPERTIES[tissue]
         self.lam, self.mu = lame_parameters(props["E"], props["nu"])
-        self.body_force    = body_force
-        self.u_solution    = None
+        self.body_force = body_force
+        self.u_solution = None
 
     def solve(self, verbose: bool = True):
         """Assemble and solve the linear elasticity system."""
         _require_dolfinx()
         import dolfinx.fem as fem
         import dolfinx.fem.petsc as petsc_fem
-        from dolfinx.mesh import locate_entities_boundary, meshtags
-        from ufl import (
-            VectorElement, FunctionSpace, TestFunction, TrialFunction,
-            dx, inner, grad, sym, tr, Identity, as_vector,
-        )
-        from petsc4py import PETSc
         import ufl
+        from petsc4py import PETSc
+        from ufl import (
+            TestFunction,
+            TrialFunction,
+            dx,
+            grad,
+            inner,
+            sym,
+            tr,
+        )
 
         mesh = self.mesh
-        lam  = self.lam
-        mu   = self.mu
+        lam = self.lam
+        mu = self.mu
 
         # Function space (P2 vector elements)
         V = fem.VectorFunctionSpace(mesh, ("Lagrange", 2))
 
         # Strain and stress tensors
-        def eps(v):   return sym(grad(v))
-        def sigma(v): return lam * tr(eps(v)) * ufl.Identity(len(v)) + 2 * mu * eps(v)
+        def eps(v):
+            return sym(grad(v))
 
-        u  = TrialFunction(V)
-        v  = TestFunction(V)
-        f  = fem.Constant(mesh, PETSc.ScalarType(self.body_force))
+        def sigma(v):
+            return lam * tr(eps(v)) * ufl.Identity(len(v)) + 2 * mu * eps(v)
 
-        a  = inner(sigma(u), eps(v)) * dx
-        L  = inner(f, v) * dx
+        u = TrialFunction(V)
+        v = TestFunction(V)
+        f = fem.Constant(mesh, PETSc.ScalarType(self.body_force))
+
+        a = inner(sigma(u), eps(v)) * dx
+        L = inner(f, v) * dx
 
         # Dirichlet: fix all boundary nodes
-        def boundary(x): return np.full(x.shape[1], True)
+        def boundary(x):
+            return np.full(x.shape[1], True)
+
         bc_dofs = fem.locate_dofs_geometrical(V, boundary)
         u0 = fem.Function(V)
         u0.x.array[:] = 0
         bc = fem.dirichletbc(u0, bc_dofs)
 
         # Solve
-        problem = petsc_fem.LinearProblem(a, L, bcs=[bc],
-                                          petsc_options={"ksp_type": "preonly",
-                                                         "pc_type":  "lu"})
+        problem = petsc_fem.LinearProblem(
+            a, L, bcs=[bc], petsc_options={"ksp_type": "preonly", "pc_type": "lu"}
+        )
         self.u_solution = problem.solve()
         if verbose:
-            print(f"[LinearBrainModel] Solved. |u|_max = "
-                  f"{np.max(np.abs(self.u_solution.x.array)):.4e} m")
+            print(
+                f"[LinearBrainModel] Solved. |u|_max = "
+                f"{np.max(np.abs(self.u_solution.x.array)):.4e} m"
+            )
         return self.u_solution
 
     def von_mises_stress(self) -> np.ndarray:
         """Compute von Mises stress from the solution."""
         _require_dolfinx()
         import dolfinx.fem as fem
-        import ufl
-        from ufl import grad, sym, tr, sqrt, inner, Identity
+        from ufl import Identity, grad, inner, sqrt, sym, tr
 
-        u   = self.u_solution
+        u = self.u_solution
         lam = self.lam
-        mu  = self.mu
+        mu = self.mu
 
-        def eps(v):   return sym(grad(v))
-        def sigma(v): return lam * tr(eps(v)) * Identity(len(v)) + 2 * mu * eps(v)
+        def eps(v):
+            return sym(grad(v))
 
-        s  = sigma(u) - (1./3) * tr(sigma(u)) * Identity(len(u))
-        vm = sqrt(3./2 * inner(s, s))
+        def sigma(v):
+            return lam * tr(eps(v)) * Identity(len(v)) + 2 * mu * eps(v)
 
-        W  = fem.FunctionSpace(self.mesh, ("DG", 0))
+        s = sigma(u) - (1.0 / 3) * tr(sigma(u)) * Identity(len(u))
+        vm = sqrt(3.0 / 2 * inner(s, s))
+
+        W = fem.FunctionSpace(self.mesh, ("DG", 0))
         vm_expr = fem.Expression(vm, W.element.interpolation_points())
         vm_func = fem.Function(W)
         vm_func.interpolate(vm_expr)
@@ -239,6 +257,7 @@ class LinearBrainModel:
 
 
 # ─── DTI-informed material properties ─────────────────────────────────────────
+
 
 def assign_material_properties_from_dti(
     mesh,
@@ -324,17 +343,17 @@ def assign_material_properties_from_dti(
 
     # Base properties per tissue tag
     tag_to_props = {
-        TAG_WM:   TISSUE_PROPERTIES["white_matter"],
-        TAG_GM:   TISSUE_PROPERTIES["gray_matter"],
+        TAG_WM: TISSUE_PROPERTIES["white_matter"],
+        TAG_GM: TISSUE_PROPERTIES["gray_matter"],
         TAG_TUMOR: TISSUE_PROPERTIES["glioma_II"],
-        TAG_CSF:  TISSUE_PROPERTIES["csf"],
+        TAG_CSF: TISSUE_PROPERTIES["csf"],
         TAG_DEEP: TISSUE_PROPERTIES["gray_matter"],  # approximate
     }
 
     # FA modulates stiffness: higher FA → stiffer (more aligned fibers)
     # MD modulates compressibility: higher MD → more fluid-like (higher ν)
-    ALPHA_FA = 0.8   # stiffness scaling coefficient
-    BETA_MD = 0.05   # compressibility scaling coefficient
+    ALPHA_FA = 0.8  # stiffness scaling coefficient
+    BETA_MD = 0.05  # compressibility scaling coefficient
 
     E_arr = np.zeros(num_cells, dtype=np.float64)
     nu_arr = np.zeros(num_cells, dtype=np.float64)
@@ -387,19 +406,15 @@ def add_tumor_subregion(
     """
     _require_dolfinx()
     import dolfinx.mesh as dmesh
-    from mpi4py import MPI
 
     cx, cy, cz = tumor_center
     r = tumor_radius
 
     def tumor_cells(x):
-        return (x[0] - cx)**2 + (x[1] - cy)**2 + (x[2] - cz)**2 < r**2
+        return (x[0] - cx) ** 2 + (x[1] - cy) ** 2 + (x[2] - cz) ** 2 < r**2
 
     tumor_indices = dmesh.locate_entities(mesh, mesh.topology.dim, tumor_cells)
-    all_cells     = np.arange(mesh.topology.index_map(mesh.topology.dim).size_local,
-                              dtype=np.int32)
-    bg_indices    = np.setdiff1d(all_cells, tumor_indices)
-
+    all_cells = np.arange(mesh.topology.index_map(mesh.topology.dim).size_local, dtype=np.int32)
     values = np.ones(len(all_cells), dtype=np.int32)
     values[np.isin(all_cells, tumor_indices)] = 2
 
@@ -407,6 +422,6 @@ def add_tumor_subregion(
 
     props = {
         1: lame_parameters(**{k: TISSUE_PROPERTIES[tissue_background][k] for k in ("E", "nu")}),
-        2: lame_parameters(**{k: TISSUE_PROPERTIES[tissue_tumor][k]      for k in ("E", "nu")}),
+        2: lame_parameters(**{k: TISSUE_PROPERTIES[tissue_tumor][k] for k in ("E", "nu")}),
     }
     return cell_tags, props

@@ -17,26 +17,27 @@ Requires: numpy, nibabel (both available in cas-qsiprep conda env)
 CAS Brain Mechanics MRI — Finse 2026
 """
 
-import sys
 import struct
-import numpy as np
+import sys
+
 import nibabel as nib
+import numpy as np
 
 
 def read_tck(path):
     """Read a MRtrix3 .tck file. Returns list of (N,3) arrays."""
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         header_bytes = bytearray()
         while True:
             line = f.readline()
             header_bytes.extend(line)
-            if line.strip() == b'END':
+            if line.strip() == b"END":
                 break
 
         offset = None
-        for line in header_bytes.decode('latin-1').split('\n'):
+        for line in header_bytes.decode("latin-1").split("\n"):
             line = line.strip()
-            if line.startswith('file:'):
+            if line.startswith("file:"):
                 parts = line.split()
                 offset = int(parts[-1])
                 break
@@ -47,7 +48,7 @@ def read_tck(path):
         f.seek(offset)
         data = f.read()
 
-    floats = np.frombuffer(data, dtype='<f4').copy()
+    floats = np.frombuffer(data, dtype="<f4").copy()
     coords = floats.reshape(-1, 3)
 
     # Split at NaN markers (end-of-streamline)
@@ -98,52 +99,60 @@ def write_trk(path, streamlines, ref_img):
     voxel_sizes = ref_img.header.get_zooms()[:3]
 
     # Write using low-level approach for compatibility
-    with open(path, 'wb') as f:
+    with open(path, "wb") as f:
         # Write TRK header (1000 bytes)
         hdr = bytearray(1000)
 
         # id_string (6 bytes)
-        hdr[0:6] = b'TRACK\x00'
+        hdr[0:6] = b"TRACK\x00"
 
         # dim (3 x int16, offset 6)
-        struct.pack_into('<3h', hdr, 6, *shape)
+        struct.pack_into("<3h", hdr, 6, *shape)
 
         # voxel_size (3 x float32, offset 12)
-        struct.pack_into('<3f', hdr, 12, *voxel_sizes)
+        struct.pack_into("<3f", hdr, 12, *voxel_sizes)
 
         # origin (3 x float32, offset 24) — set to 0
-        struct.pack_into('<3f', hdr, 24, 0.0, 0.0, 0.0)
+        struct.pack_into("<3f", hdr, 24, 0.0, 0.0, 0.0)
 
         # n_scalars (int16, offset 36)
-        struct.pack_into('<h', hdr, 36, 0)
+        struct.pack_into("<h", hdr, 36, 0)
 
         # n_properties (int16, offset 238)
-        struct.pack_into('<h', hdr, 238, 0)
+        struct.pack_into("<h", hdr, 238, 0)
 
         # vox_to_ras (4x4 float32, offset 440)
         vox_to_ras = ref_img.affine.astype(np.float32).flatten()
-        struct.pack_into('<16f', hdr, 440, *vox_to_ras)
+        struct.pack_into("<16f", hdr, 440, *vox_to_ras)
 
         # voxel_order (3 bytes, offset 948)
-        hdr[948:951] = b'RAS'
+        hdr[948:951] = b"RAS"
 
         # image_orientation_patient (6 x float32, offset 956)
         # Store the first two columns of the rotation matrix
         R = ref_img.affine[:3, :3]
         norms = np.sqrt(np.sum(R**2, axis=0))
         R_norm = R / norms
-        struct.pack_into('<6f', hdr, 956,
-                         R_norm[0, 0], R_norm[1, 0], R_norm[2, 0],
-                         R_norm[0, 1], R_norm[1, 1], R_norm[2, 1])
+        struct.pack_into(
+            "<6f",
+            hdr,
+            956,
+            R_norm[0, 0],
+            R_norm[1, 0],
+            R_norm[2, 0],
+            R_norm[0, 1],
+            R_norm[1, 1],
+            R_norm[2, 1],
+        )
 
         # n_count (int32, offset 988)
-        struct.pack_into('<i', hdr, 988, len(streamlines))
+        struct.pack_into("<i", hdr, 988, len(streamlines))
 
         # version (int32, offset 992)
-        struct.pack_into('<i', hdr, 992, 2)
+        struct.pack_into("<i", hdr, 992, 2)
 
         # hdr_size (int32, offset 996)
-        struct.pack_into('<i', hdr, 996, 1000)
+        struct.pack_into("<i", hdr, 996, 1000)
 
         f.write(bytes(hdr))
 
@@ -151,9 +160,9 @@ def write_trk(path, streamlines, ref_img):
         for sl in streamlines:
             n_pts = len(sl)
             # Write number of points (int32)
-            f.write(struct.pack('<i', n_pts))
+            f.write(struct.pack("<i", n_pts))
             # Write coordinates (n_pts x 3 x float32)
-            f.write(sl.astype('<f4').tobytes())
+            f.write(sl.astype("<f4").tobytes())
 
 
 def main():
@@ -173,7 +182,7 @@ def main():
     streamlines = read_tck(input_tck)
     print(f"  Loaded {len(streamlines)} streamlines")
 
-    print(f"  Converting scanner RAS → TrackVis voxmm ...")
+    print("  Converting scanner RAS → TrackVis voxmm ...")
     trk_streamlines = scanner_to_trackvis(streamlines, ref_img)
 
     print(f"  Writing .trk: {output_trk}")
@@ -181,5 +190,5 @@ def main():
     print(f"  Done — {len(trk_streamlines)} streamlines written")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

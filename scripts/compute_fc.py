@@ -28,50 +28,88 @@ except ImportError:
 # ── Desikan-Killiany ROI definitions ─────────────────────────────────────────
 
 DK_CORTICAL = {
-    1001: "L-bankssts", 1002: "L-caudalanteriorcingulate",
-    1003: "L-caudalmiddlefrontal", 1005: "L-cuneus",
-    1006: "L-entorhinal", 1007: "L-fusiform",
-    1008: "L-inferiorparietal", 1009: "L-inferiortemporal",
-    1010: "L-isthmuscingulate", 1011: "L-lateraloccipital",
-    1012: "L-lateralorbitofrontal", 1013: "L-lingual",
-    1014: "L-medialorbitofrontal", 1015: "L-middletemporal",
-    1016: "L-parahippocampal", 1017: "L-paracentral",
-    1018: "L-parsopercularis", 1019: "L-parsorbitalis",
-    1020: "L-parstriangularis", 1021: "L-pericalcarine",
-    1022: "L-postcentral", 1023: "L-posteriorcingulate",
-    1024: "L-precentral", 1025: "L-precuneus",
-    1026: "L-rostralanteriorcingulate", 1027: "L-rostralmiddlefrontal",
-    1028: "L-superiorfrontal", 1029: "L-superiorparietal",
-    1030: "L-superiortemporal", 1031: "L-supramarginal",
-    1032: "L-frontalpole", 1033: "L-temporalpole",
-    1034: "L-transversetemporal", 1035: "L-insula",
+    1001: "L-bankssts",
+    1002: "L-caudalanteriorcingulate",
+    1003: "L-caudalmiddlefrontal",
+    1005: "L-cuneus",
+    1006: "L-entorhinal",
+    1007: "L-fusiform",
+    1008: "L-inferiorparietal",
+    1009: "L-inferiortemporal",
+    1010: "L-isthmuscingulate",
+    1011: "L-lateraloccipital",
+    1012: "L-lateralorbitofrontal",
+    1013: "L-lingual",
+    1014: "L-medialorbitofrontal",
+    1015: "L-middletemporal",
+    1016: "L-parahippocampal",
+    1017: "L-paracentral",
+    1018: "L-parsopercularis",
+    1019: "L-parsorbitalis",
+    1020: "L-parstriangularis",
+    1021: "L-pericalcarine",
+    1022: "L-postcentral",
+    1023: "L-posteriorcingulate",
+    1024: "L-precentral",
+    1025: "L-precuneus",
+    1026: "L-rostralanteriorcingulate",
+    1027: "L-rostralmiddlefrontal",
+    1028: "L-superiorfrontal",
+    1029: "L-superiorparietal",
+    1030: "L-superiortemporal",
+    1031: "L-supramarginal",
+    1032: "L-frontalpole",
+    1033: "L-temporalpole",
+    1034: "L-transversetemporal",
+    1035: "L-insula",
 }
-DK_CORTICAL.update(
-    {k + 1000: name.replace("L-", "R-") for k, name in list(DK_CORTICAL.items())}
-)
+DK_CORTICAL.update({k + 1000: name.replace("L-", "R-") for k, name in list(DK_CORTICAL.items())})
 
 DK_SUBCORTICAL = {
-    10: "L-Thalamus", 11: "L-Caudate", 12: "L-Putamen",
-    13: "L-Pallidum", 17: "L-Hippocampus", 18: "L-Amygdala",
+    10: "L-Thalamus",
+    11: "L-Caudate",
+    12: "L-Putamen",
+    13: "L-Pallidum",
+    17: "L-Hippocampus",
+    18: "L-Amygdala",
     26: "L-Accumbens",
-    49: "R-Thalamus", 50: "R-Caudate", 51: "R-Putamen",
-    52: "R-Pallidum", 53: "R-Hippocampus", 54: "R-Amygdala",
+    49: "R-Thalamus",
+    50: "R-Caudate",
+    51: "R-Putamen",
+    52: "R-Pallidum",
+    53: "R-Hippocampus",
+    54: "R-Amygdala",
     58: "R-Accumbens",
 }
 
 ALL_ROIS = {**DK_CORTICAL, **DK_SUBCORTICAL}
 
 CONFOUND_COLS = [
-    "trans_x", "trans_y", "trans_z", "rot_x", "rot_y", "rot_z",
-    "trans_x_derivative1", "trans_y_derivative1", "trans_z_derivative1",
-    "rot_x_derivative1", "rot_y_derivative1", "rot_z_derivative1",
-    "a_comp_cor_00", "a_comp_cor_01", "a_comp_cor_02",
-    "a_comp_cor_03", "a_comp_cor_04",
-    "cosine00", "cosine01", "cosine02",
+    "trans_x",
+    "trans_y",
+    "trans_z",
+    "rot_x",
+    "rot_y",
+    "rot_z",
+    "trans_x_derivative1",
+    "trans_y_derivative1",
+    "trans_z_derivative1",
+    "rot_x_derivative1",
+    "rot_y_derivative1",
+    "rot_z_derivative1",
+    "a_comp_cor_00",
+    "a_comp_cor_01",
+    "a_comp_cor_02",
+    "a_comp_cor_03",
+    "a_comp_cor_04",
+    "cosine00",
+    "cosine01",
+    "cosine02",
 ]
 
 
 # ── Core functions ───────────────────────────────────────────────────────────
+
 
 def load_bold_and_confounds(fmriprep_dir, sub, ses):
     func_dir = fmriprep_dir / f"sub-{sub}" / f"ses-{ses}" / "func"
@@ -102,8 +140,9 @@ def extract_roi_timeseries(bold_img, aparc_img, roi_labels, min_voxels=10):
         if resample_to_img is None:
             raise RuntimeError("nilearn required for grid resampling (pip install nilearn)")
         print(f"  Resampling aparc+aseg {aparc_img.shape} -> BOLD {bold_img.shape[:3]}")
-        aparc_resampled = resample_to_img(aparc_img, nib.Nifti1Image(
-            bold_data[..., 0], bold_img.affine), interpolation="nearest")
+        aparc_resampled = resample_to_img(
+            aparc_img, nib.Nifti1Image(bold_data[..., 0], bold_img.affine), interpolation="nearest"
+        )
         aparc_data = np.asarray(aparc_resampled.dataobj).astype(int)
 
     n_vols = bold_data.shape[3]
@@ -121,8 +160,7 @@ def extract_roi_timeseries(bold_img, aparc_img, roi_labels, min_voxels=10):
     return ts, roi_names, valid
 
 
-def clean_timeseries(ts, confounds, tr, valid_rois,
-                     bandpass=(0.01, 0.1), fd_thresh=0.5):
+def clean_timeseries(ts, confounds, tr, valid_rois, bandpass=(0.01, 0.1), fd_thresh=0.5):
     available_cols = [c for c in CONFOUND_COLS if c in confounds.columns]
     X = confounds[available_cols].fillna(0).values
 
@@ -170,9 +208,11 @@ def compute_fc(ts_clean, valid_rois):
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--subject", required=True)
     parser.add_argument("--session", default=None, help="preop, postop, or omit for both")
     parser.add_argument("--project-dir", required=True, type=Path)

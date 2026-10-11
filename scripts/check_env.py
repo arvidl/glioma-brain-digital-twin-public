@@ -7,10 +7,9 @@ and prints a diagnostic report.
 Can be invoked as: python -m scripts.check_env or check-env (via entry point)
 """
 
+import platform
 import sys
 from importlib.util import find_spec
-import platform
-
 
 REQUIRED = [
     "numpy",
@@ -49,12 +48,15 @@ def get_version(name):
     try:
         if name == "dolfinx":
             import dolfinx
+
             return dolfinx.__version__
         elif name == "petsc4py":
             import petsc4py
+
             return petsc4py.__version__
         elif name == "tvb":
             import tvb
+
             return tvb.__version__
         else:
             mod = __import__(name)
@@ -78,7 +80,7 @@ def check_required():
     """Check required packages."""
     print("Required Packages:")
     print("-" * 70)
-    
+
     missing = []
     for name in REQUIRED:
         available = check_package(name)
@@ -87,7 +89,7 @@ def check_required():
         print(f"  {status} {name:<20} {version}")
         if not available:
             missing.append(name)
-    
+
     print()
     return missing
 
@@ -96,7 +98,7 @@ def check_optional():
     """Check optional packages."""
     print("Optional Packages:")
     print("-" * 70)
-    
+
     for group, packages in OPTIONAL.items():
         print(f"  {group.upper()}:")
         for name in packages:
@@ -110,15 +112,15 @@ def check_optional():
 def main():
     """Run environment check."""
     print_header()
-    
+
     missing = check_required()
     check_optional()
-    
+
     if missing:
         print(f"Missing {len(missing)} required package(s):")
         for name in missing:
             print(f"  - {name}")
-        
+
         print("\nInstall with:")
         print(f"  pip install {' '.join(missing)}")
         print("\nOr create environment with:")
@@ -136,4 +138,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

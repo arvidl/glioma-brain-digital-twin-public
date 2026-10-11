@@ -1,9 +1,11 @@
 """
 Pytest configuration and shared fixtures for Finse 2026 test suite.
 """
-import pytest
-from pathlib import Path
+
 import os
+from pathlib import Path
+
+import pytest
 
 
 def _find_repo_root() -> Path:
@@ -42,9 +44,10 @@ def bids_layout(bids_root, data_exists):
     """Return a BIDSLayout instance if dataset exists, else None."""
     if not data_exists:
         return None
-    
+
     try:
         from bids import BIDSLayout
+
         layout = BIDSLayout(str(bids_root), validate=False)
         return layout
     except Exception as e:
@@ -57,21 +60,20 @@ def synthetic_nifti_path(tmp_path):
     Create a synthetic NIfTI file for testing.
     Returns path to a small 3D NIfTI image.
     """
-    import numpy as np
     import nibabel as nib
-    
+    import numpy as np
+
     # Create 10x10x10 random data
     data = np.random.randn(10, 10, 10).astype(np.float32)
-    
+
     # Identity affine
     affine = np.eye(4)
     affine[0, 3] = -4.5  # center
     affine[1, 3] = -4.5
     affine[2, 3] = -4.5
-    
+
     img = nib.Nifti1Image(data, affine)
     fpath = tmp_path / "synthetic.nii.gz"
     nib.save(img, fpath)
-    
-    return fpath
 
+    return fpath

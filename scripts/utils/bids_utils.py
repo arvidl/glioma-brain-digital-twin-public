@@ -11,6 +11,7 @@ Usage
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Optional
 
@@ -21,6 +22,7 @@ except ImportError:
 
 
 # ─── Layout ──────────────────────────────────────────────────────────────────
+
 
 def load_bids_layout(bids_root: str | Path, validate: bool = False) -> "BIDSLayout":
     """Load a BIDS dataset.
@@ -45,21 +47,22 @@ def load_bids_layout(bids_root: str | Path, validate: bool = False) -> "BIDSLayo
 
 def bids_summary(layout: "BIDSLayout") -> dict:
     """Return a summary dict of the BIDS dataset."""
-    subjects  = layout.get_subjects()
-    sessions  = layout.get_sessions()
+    subjects = layout.get_subjects()
+    sessions = layout.get_sessions()
     datatypes = layout.get_datatypes()
-    tasks     = layout.get_tasks()
+    tasks = layout.get_tasks()
     return {
-        "subjects":  subjects,
-        "sessions":  sessions,
+        "subjects": subjects,
+        "sessions": sessions,
         "datatypes": datatypes,
-        "tasks":     tasks,
+        "tasks": tasks,
         "n_subjects": len(subjects),
         "n_sessions": len(sessions),
     }
 
 
 # ─── Path helpers ─────────────────────────────────────────────────────────────
+
 
 def get_t1w_path(
     layout: "BIDSLayout",
@@ -126,7 +129,7 @@ def get_dwi_paths(
     nii_path = Path(files[0].path)
     stem = nii_path.with_suffix("").with_suffix("")  # strip .nii.gz
     return {
-        "nii":  nii_path,
+        "nii": nii_path,
         "bval": stem.with_suffix(".bval"),
         "bvec": stem.with_suffix(".bvec"),
         "json": stem.with_suffix(".json"),
@@ -136,6 +139,7 @@ def get_dwi_paths(
 def get_participants_df(layout: "BIDSLayout"):
     """Return participants.tsv as a pandas DataFrame."""
     import pandas as pd
+
     tsv = Path(layout.root) / "participants.tsv"
     if not tsv.exists():
         raise FileNotFoundError(f"participants.tsv not found in {layout.root}")
@@ -144,23 +148,22 @@ def get_participants_df(layout: "BIDSLayout"):
 
 # ─── Derivatives helpers ──────────────────────────────────────────────────────
 
+
 def get_tvb_paths(bids_root: str | Path, subject: str, session: str) -> dict[str, Path]:
     """Return paths to TVB derivative files (SC, FC, HRF, ROIts)."""
     base = Path(bids_root) / "derivatives" / "TVB" / f"sub-{subject}" / f"ses-{session}"
     if not base.exists():
         raise FileNotFoundError(f"TVB derivatives not found: {base}")
     return {
-        "SC":       base / "SC.zip",
-        "SCthrAn":  base / "SCthrAn.mat",
-        "FC":       base / "FC.mat",
-        "HRF":      base / "HRF.csv",
-        "ROIts":    base / "ROIts.dat",
+        "SC": base / "SC.zip",
+        "SCthrAn": base / "SCthrAn.mat",
+        "FC": base / "FC.mat",
+        "HRF": base / "HRF.csv",
+        "ROIts": base / "ROIts.dat",
     }
 
 
-def get_tumor_mask_paths(
-    bids_root: str | Path, subject: str, space: str = "T1"
-) -> Path:
+def get_tumor_mask_paths(bids_root: str | Path, subject: str, space: str = "T1") -> Path:
     """Return path to tumor mask (space='T1' or 'MNI')."""
     base = Path(bids_root) / "derivatives" / "tumor_masks" / f"sub-{subject}" / "anat"
     fname = f"sub-{subject}_space_{space}_label-tumor.nii.gz"

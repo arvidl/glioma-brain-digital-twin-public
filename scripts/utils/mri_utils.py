@@ -10,6 +10,7 @@ Usage
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Optional, Sequence, Tuple
 
@@ -22,12 +23,12 @@ except ImportError:
 
 try:
     import matplotlib.pyplot as plt
-    import matplotlib.gridspec as gridspec
 except ImportError:
     raise ImportError("matplotlib is required")
 
 
 # ─── I/O ─────────────────────────────────────────────────────────────────────
+
 
 def load_nifti(path: str | Path) -> Tuple[nib.Nifti1Image, np.ndarray, np.ndarray]:
     """Load a NIfTI file and return (img, data, affine).
@@ -59,6 +60,7 @@ def get_voxel_size(path: str | Path) -> np.ndarray:
 
 
 # ─── Resampling / masking ─────────────────────────────────────────────────────
+
 
 def resample_to_target(
     source_path: str | Path,
@@ -101,9 +103,7 @@ def load_rshrf_maps(
 
     Returns dict mapping param name -> (data_array, affine).
     """
-    rsHRF_dir = (
-        Path(bids_root) / "derivatives" / "rsHRF" / f"sub-{subject}"
-    )
+    rsHRF_dir = Path(bids_root) / "derivatives" / "rsHRF" / f"sub-{subject}"
     prefix = f"sub-{subject}_ses-{session}_task-rest_space-MNI152NLin2009cAsym_desc-preproc_bold"
     result = {}
     for param in params:
@@ -128,8 +128,11 @@ def load_tumor_mask(
     Returns (mask_data, affine).
     """
     p = (
-        Path(bids_root) / "derivatives" / "tumor_masks"
-        / f"sub-{subject}" / "anat"
+        Path(bids_root)
+        / "derivatives"
+        / "tumor_masks"
+        / f"sub-{subject}"
+        / "anat"
         / f"sub-{subject}_space_{space}_label-tumor.nii.gz"
     )
     img = nib.load(str(p))
@@ -138,9 +141,8 @@ def load_tumor_mask(
 
 # ─── Diffusion helpers ────────────────────────────────────────────────────────
 
-def load_bvals_bvecs(
-    bval_path: str | Path, bvec_path: str | Path
-) -> Tuple[np.ndarray, np.ndarray]:
+
+def load_bvals_bvecs(bval_path: str | Path, bvec_path: str | Path) -> Tuple[np.ndarray, np.ndarray]:
     """Load b-values and b-vectors using dipy."""
     try:
         from dipy.io import read_bvals_bvecs
@@ -162,9 +164,9 @@ def compute_dti_metrics(
     -------
     dict with keys 'FA', 'MD', 'AD', 'RD'  (all in image space)
     """
-    from dipy.io.image import load_nifti as dipy_load
-    from dipy.io import read_bvals_bvecs
     from dipy.core.gradients import gradient_table
+    from dipy.io import read_bvals_bvecs
+    from dipy.io.image import load_nifti as dipy_load
     from dipy.reconst.dti import TensorModel
 
     data, affine = dipy_load(str(dwi_path))
@@ -177,7 +179,7 @@ def compute_dti_metrics(
         mask = mask.astype(bool)
 
     model = TensorModel(gtab)
-    fit   = model.fit(data, mask=mask)
+    fit = model.fit(data, mask=mask)
 
     return {
         "FA": fit.fa,
@@ -188,6 +190,7 @@ def compute_dti_metrics(
 
 
 # ─── Visualisation ────────────────────────────────────────────────────────────
+
 
 def plot_anat_slices(
     anat_path: str | Path,
@@ -206,7 +209,7 @@ def plot_anat_slices(
         raise ImportError("nilearn is required")
 
     fig, ax = plt.subplots(1, 1, figsize=figsize)
-    display = plotting.plot_anat(
+    plotting.plot_anat(
         str(anat_path),
         display_mode=display_mode,
         cut_coords=n_cuts if display_mode != "ortho" else None,
@@ -254,16 +257,21 @@ def plot_dti_metrics(
     figsize: tuple = (14, 4),
 ) -> plt.Figure:
     """Plot FA, MD, AD, RD maps side by side at a given axial slice."""
-    keys   = [k for k in ("FA", "MD", "AD", "RD") if k in metrics]
-    cmaps  = {"FA": "inferno", "MD": "viridis", "AD": "plasma", "RD": "magma"}
+    keys = [k for k in ("FA", "MD", "AD", "RD") if k in metrics]
+    cmaps = {"FA": "inferno", "MD": "viridis", "AD": "plasma", "RD": "magma"}
     limits = {"FA": (0, 1), "MD": (0, 3e-3), "AD": (0, 3e-3), "RD": (0, 2e-3)}
 
     fig, axes = plt.subplots(1, len(keys), figsize=figsize)
     for ax, key in zip(axes, keys):
         vol = metrics[key]
-        s   = vol.shape[2] // 2 if slice_idx is None else slice_idx
-        im  = ax.imshow(vol[:, :, s].T, origin="lower",
-                        cmap=cmaps[key], vmin=limits[key][0], vmax=limits[key][1])
+        s = vol.shape[2] // 2 if slice_idx is None else slice_idx
+        im = ax.imshow(
+            vol[:, :, s].T,
+            origin="lower",
+            cmap=cmaps[key],
+            vmin=limits[key][0],
+            vmax=limits[key][1],
+        )
         ax.set_title(key, fontsize=12, fontweight="bold")
         ax.axis("off")
         plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)

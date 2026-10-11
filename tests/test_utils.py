@@ -3,14 +3,14 @@ Unit tests for scripts/utils/ modules.
 
 These tests use synthetic data and do not require the BIDS dataset to be present.
 """
-import pytest
-import numpy as np
-from pathlib import Path
 
+import numpy as np
+import pytest
 
 # ---------------------------------------------------------------------------
 # mri_utils
 # ---------------------------------------------------------------------------
+
 
 class TestMriUtils:
     """Tests for scripts.utils.mri_utils (NIfTI I/O and DTI helpers)."""
@@ -23,7 +23,7 @@ class TestMriUtils:
         assert affine.shape == (4, 4)
 
     def test_save_and_reload(self, tmp_path):
-        from scripts.utils.mri_utils import save_nifti, load_nifti
+        from scripts.utils.mri_utils import load_nifti, save_nifti
 
         data = np.random.randn(5, 5, 5).astype(np.float32)
         affine = np.eye(4)
@@ -52,6 +52,7 @@ class TestMriUtils:
 # ---------------------------------------------------------------------------
 # connectivity_utils
 # ---------------------------------------------------------------------------
+
 
 class TestConnectivityUtils:
     """Tests for matrix operations in connectivity_utils."""
@@ -122,19 +123,22 @@ class TestConnectivityUtils:
 # plotting
 # ---------------------------------------------------------------------------
 
+
 class TestPlotting:
     """Tests for plotting utilities (figures are created but not displayed)."""
 
     def test_set_style(self):
-        from scripts.utils.plotting import set_style
         import matplotlib.pyplot as plt
+
+        from scripts.utils.plotting import set_style
 
         set_style(font_size=12, dpi=100)
         assert plt.rcParams["font.size"] == 12
 
     def test_plot_matrix(self):
-        from scripts.utils.plotting import plot_matrix
         import matplotlib.pyplot as plt
+
+        from scripts.utils.plotting import plot_matrix
 
         M = np.random.rand(10, 10)
         fig = plot_matrix(M, title="Test Matrix")
@@ -142,8 +146,9 @@ class TestPlotting:
         plt.close(fig)
 
     def test_plot_matrix_comparison(self):
-        from scripts.utils.plotting import plot_matrix_comparison
         import matplotlib.pyplot as plt
+
+        from scripts.utils.plotting import plot_matrix_comparison
 
         M1 = np.random.rand(10, 10)
         M2 = np.random.rand(10, 10)
@@ -152,8 +157,9 @@ class TestPlotting:
         plt.close(fig)
 
     def test_plot_roi_timeseries(self):
-        from scripts.utils.plotting import plot_roi_timeseries
         import matplotlib.pyplot as plt
+
+        from scripts.utils.plotting import plot_roi_timeseries
 
         ts = np.random.randn(100, 10)
         fig = plot_roi_timeseries(ts, tr=2.0, roi_indices=[0, 1, 2])
@@ -161,8 +167,9 @@ class TestPlotting:
         plt.close(fig)
 
     def test_plot_metrics_comparison(self):
-        from scripts.utils.plotting import plot_metrics_comparison
         import matplotlib.pyplot as plt
+
+        from scripts.utils.plotting import plot_metrics_comparison
 
         pre = {"global_efficiency": 0.5, "modularity": 0.4, "clustering": 0.3}
         post = {"global_efficiency": 0.45, "modularity": 0.38, "clustering": 0.28}
@@ -174,6 +181,7 @@ class TestPlotting:
 # ---------------------------------------------------------------------------
 # mechanics_utils (material parameters only; FEniCSx tests skipped if absent)
 # ---------------------------------------------------------------------------
+
 
 class TestMechanicsUtils:
     """Tests for mechanics helper functions."""
@@ -202,6 +210,7 @@ class TestMechanicsUtils:
 # config
 # ---------------------------------------------------------------------------
 
+
 class TestConfig:
     """Tests for centralized configuration."""
 
@@ -217,7 +226,7 @@ class TestConfig:
         assert str(BIDS_ROOT).endswith("BIDS_preop_postop")
 
     def test_subjects_and_sessions(self):
-        from scripts.config import SUBJECTS, SESSIONS
+        from scripts.config import SESSIONS, SUBJECTS
 
         assert "PAT16" in SUBJECTS
         assert len(SUBJECTS) == 1

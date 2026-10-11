@@ -34,8 +34,8 @@ from pathlib import Path
 
 import nibabel as nib
 import numpy as np
+from scipy.signal import butter, filtfilt
 from scipy.stats import gamma as gamma_dist
-from scipy.signal import butter, filtfilt, fftconvolve
 
 
 def spm_hrf(tr: float, time_length: float = 32.0):
@@ -145,9 +145,7 @@ def estimate_hrf_voxelwise(bold_data, mask, tr, bandpass=(0.01, 0.1)):
         threshold = neural.std()
         events = []
         for i in range(1, n_vols - 1):
-            if (neural[i] > neural[i - 1] and
-                neural[i] > neural[i + 1] and
-                neural[i] > threshold):
+            if neural[i] > neural[i - 1] and neural[i] > neural[i + 1] and neural[i] > threshold:
                 events.append(i)
 
         if len(events) < 3:
@@ -194,13 +192,17 @@ def estimate_hrf_voxelwise(bold_data, mask, tr, bandpass=(0.01, 0.1)):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--subject", required=True)
     parser.add_argument("--session", default=None, help="preop, postop, or omit for both")
     parser.add_argument("--project-dir", required=True, type=Path)
-    parser.add_argument("--space", default="MNI152NLin2009cAsym",
-                        help="BOLD output space (default: MNI152NLin2009cAsym)")
+    parser.add_argument(
+        "--space",
+        default="MNI152NLin2009cAsym",
+        help="BOLD output space (default: MNI152NLin2009cAsym)",
+    )
     args = parser.parse_args()
 
     project = args.project_dir.resolve()
@@ -213,7 +215,7 @@ def main():
 
     print("=" * 60)
     print(f" rsHRF Estimation: sub-{sub}")
-    print(f" Method: point-process deconvolution (Wu et al. 2013)")
+    print(" Method: point-process deconvolution (Wu et al. 2013)")
     print("=" * 60)
 
     for ses in sessions:
@@ -257,9 +259,11 @@ def main():
             nib.save(out_img, str(out_path))
             brain_vals = data[mask & (data > 0)]
             if len(brain_vals) > 0:
-                print(f"  {name}: mean={brain_vals.mean():.3f}, "
-                      f"std={brain_vals.std():.3f}, "
-                      f"range=[{brain_vals.min():.3f}, {brain_vals.max():.3f}]")
+                print(
+                    f"  {name}: mean={brain_vals.mean():.3f}, "
+                    f"std={brain_vals.std():.3f}, "
+                    f"range=[{brain_vals.min():.3f}, {brain_vals.max():.3f}]"
+                )
             else:
                 print(f"  {name}: no valid voxels")
 

@@ -100,5 +100,10 @@ select = [
 ]
 ignore = [
     "E501",  # line-length (handled by black)
+    "B007",  # unused loop variable
+    "B904",  # raise ... from err inside except
+    "B905",  # zip() without strict=
+    "C408",  # dict() call instead of literal
+    "C901",  # function complexity
 ]
 

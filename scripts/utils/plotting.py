@@ -11,48 +11,50 @@ Usage
 """
 
 from __future__ import annotations
+
 from typing import Optional, Sequence
 
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-
+import numpy as np
 
 # ─── Style ────────────────────────────────────────────────────────────────────
 
 PALETTE = {
-    "preop":   "#2471A3",   # steel blue
-    "postop":  "#E74C3C",   # crimson
-    "glioma":  "#E67E22",   # orange
-    "control": "#27AE60",   # green
-    "tumor":   "#C0392B",   # dark red
-    "bg":      "#F8F9FA",   # off-white
+    "preop": "#2471A3",  # steel blue
+    "postop": "#E74C3C",  # crimson
+    "glioma": "#E67E22",  # orange
+    "control": "#27AE60",  # green
+    "tumor": "#C0392B",  # dark red
+    "bg": "#F8F9FA",  # off-white
 }
 
 
 def set_style(font_size: int = 11, dpi: int = 150) -> None:
     """Apply a clean, consistent matplotlib style."""
-    plt.rcParams.update({
-        "figure.dpi":          dpi,
-        "figure.facecolor":    "white",
-        "axes.facecolor":      "white",
-        "axes.spines.top":     False,
-        "axes.spines.right":   False,
-        "axes.grid":           False,
-        "font.size":           font_size,
-        "axes.labelsize":      font_size,
-        "axes.titlesize":      font_size + 1,
-        "xtick.labelsize":     font_size - 1,
-        "ytick.labelsize":     font_size - 1,
-        "legend.fontsize":     font_size - 1,
-        "lines.linewidth":     1.8,
-        "lines.markersize":    5,
-        "savefig.bbox":        "tight",
-        "savefig.dpi":         dpi,
-    })
+    plt.rcParams.update(
+        {
+            "figure.dpi": dpi,
+            "figure.facecolor": "white",
+            "axes.facecolor": "white",
+            "axes.spines.top": False,
+            "axes.spines.right": False,
+            "axes.grid": False,
+            "font.size": font_size,
+            "axes.labelsize": font_size,
+            "axes.titlesize": font_size + 1,
+            "xtick.labelsize": font_size - 1,
+            "ytick.labelsize": font_size - 1,
+            "legend.fontsize": font_size - 1,
+            "lines.linewidth": 1.8,
+            "lines.markersize": 5,
+            "savefig.bbox": "tight",
+            "savefig.dpi": dpi,
+        }
+    )
 
 
 # ─── Matrix plots ─────────────────────────────────────────────────────────────
+
 
 def plot_matrix(
     M: np.ndarray,
@@ -93,19 +95,19 @@ def plot_matrix_comparison(
     figsize: tuple = (13, 5),
 ) -> plt.Figure:
     """Plot two matrices and their difference side by side."""
-    diff  = M_post - M_pre
-    mats  = [M_pre, M_post, diff]
-    t     = list(titles) + [f"Difference ({titles[1]} − {titles[0]})"]
+    diff = M_post - M_pre
+    mats = [M_pre, M_post, diff]
+    t = list(titles) + [f"Difference ({titles[1]} − {titles[0]})"]
     cmaps = [cmap, cmap, "RdBu_r"]
 
     if shared_scale:
         vmin = min(M_pre.min(), M_post.min())
         vmax = max(M_pre.max(), M_post.max())
         vmins = [vmin, vmin, -np.abs(diff).max()]
-        vmaxs = [vmax, vmax,  np.abs(diff).max()]
+        vmaxs = [vmax, vmax, np.abs(diff).max()]
     else:
         vmins = [None, None, -np.abs(diff).max()]
-        vmaxs = [None, None,  np.abs(diff).max()]
+        vmaxs = [None, None, np.abs(diff).max()]
 
     fig, axes = plt.subplots(1, 3, figsize=figsize)
     for ax, M, title, cm, vn, vx in zip(axes, mats, t, cmaps, vmins, vmaxs):
@@ -118,6 +120,7 @@ def plot_matrix_comparison(
 
 
 # ─── Network plots ────────────────────────────────────────────────────────────
+
 
 def plot_brain_network(
     M: np.ndarray,
@@ -144,8 +147,9 @@ def plot_brain_network(
     np.fill_diagonal(M_thr, 0)
 
     G = nx.from_numpy_array(M_thr)
-    edges, weights = zip(*nx.get_edge_attributes(G, "weight").items()) \
-        if G.number_of_edges() > 0 else ([], [])
+    edges, weights = (
+        zip(*nx.get_edge_attributes(G, "weight").items()) if G.number_of_edges() > 0 else ([], [])
+    )
 
     if layout == "circular":
         pos = nx.circular_layout(G)
@@ -154,15 +158,21 @@ def plot_brain_network(
     else:
         pos = nx.spectral_layout(G, weight="weight")
 
-    sizes  = 300 * (node_sizes  / node_sizes.max())  if node_sizes  is not None else 200
+    sizes = 300 * (node_sizes / node_sizes.max()) if node_sizes is not None else 200
     colors = node_colors if node_colors is not None else PALETTE["preop"]
 
     fig, ax = plt.subplots(figsize=figsize)
     if edges:
-        nx.draw_networkx_edges(G, pos, edgelist=edges,
-                               width=[1 + 3 * w / max(weights) for w in weights],
-                               edge_color=weights, edge_cmap=plt.cm.Blues,
-                               alpha=0.6, ax=ax)
+        nx.draw_networkx_edges(
+            G,
+            pos,
+            edgelist=edges,
+            width=[1 + 3 * w / max(weights) for w in weights],
+            edge_color=weights,
+            edge_cmap=plt.cm.Blues,
+            alpha=0.6,
+            ax=ax,
+        )
     nx.draw_networkx_nodes(G, pos, node_color=colors, node_size=sizes, ax=ax)
     ax.set_title(title, fontweight="bold")
     ax.axis("off")
@@ -171,6 +181,7 @@ def plot_brain_network(
 
 
 # ─── Time series ──────────────────────────────────────────────────────────────
+
 
 def plot_roi_timeseries(
     ts: np.ndarray,
@@ -211,6 +222,7 @@ def plot_roi_timeseries(
 
 # ─── Metrics bar / radar ───────────────────────────────────────────────────────
 
+
 def plot_metrics_comparison(
     metrics_pre: dict,
     metrics_post: dict,
@@ -221,14 +233,14 @@ def plot_metrics_comparison(
     if keys is None:
         keys = [k for k in metrics_pre if isinstance(metrics_pre[k], (int, float))]
 
-    x    = np.arange(len(keys))
-    pre  = [metrics_pre.get(k, 0)  for k in keys]
+    x = np.arange(len(keys))
+    pre = [metrics_pre.get(k, 0) for k in keys]
     post = [metrics_post.get(k, 0) for k in keys]
 
     fig, ax = plt.subplots(figsize=figsize)
     width = 0.35
-    ax.bar(x - width/2, pre,  width, label="Pre-op",  color=PALETTE["preop"],  alpha=0.85)
-    ax.bar(x + width/2, post, width, label="Post-op", color=PALETTE["postop"], alpha=0.85)
+    ax.bar(x - width / 2, pre, width, label="Pre-op", color=PALETTE["preop"], alpha=0.85)
+    ax.bar(x + width / 2, post, width, label="Post-op", color=PALETTE["postop"], alpha=0.85)
     ax.set_xticks(x)
     ax.set_xticklabels(keys, rotation=20, ha="right")
     ax.legend()

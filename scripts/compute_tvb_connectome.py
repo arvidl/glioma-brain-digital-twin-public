@@ -20,7 +20,6 @@ python scripts/compute_tvb_connectome.py \
 import argparse
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -48,10 +47,7 @@ def compute_connectome(
     """Run tck2connectome and return the SC matrix."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    tck2con_cmd = (
-        f"tck2connectome {tck_path} {parc_path} {out_path} "
-        f"-symmetric -zero_diagonal "
-    )
+    tck2con_cmd = f"tck2connectome {tck_path} {parc_path} {out_path} " f"-symmetric -zero_diagonal "
     if weights_path:
         tck2con_cmd += f"-tck_weights_in {weights_path} "
     tck2con_cmd += "-force"
@@ -75,25 +71,27 @@ def normalise_sc(SC: np.ndarray) -> np.ndarray:
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--tck",      required=True, type=Path)
-    parser.add_argument("--parc",     required=True, type=Path)
-    parser.add_argument("--out",      required=True, type=Path)
-    parser.add_argument("--weights",  type=Path, default=None)
-    parser.add_argument("--n-nodes",  type=int, default=84)
-    parser.add_argument("--dry-run",  action="store_true")
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument("--tck", required=True, type=Path)
+    parser.add_argument("--parc", required=True, type=Path)
+    parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--weights", type=Path, default=None)
+    parser.add_argument("--n-nodes", type=int, default=84)
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     # Check MRtrix3
-    result = subprocess.run("tck2connectome --version", shell=True,
-                            capture_output=True, text=True)
+    result = subprocess.run("tck2connectome --version", shell=True, capture_output=True, text=True)
     if result.returncode != 0:
         print("ERROR: tck2connectome not found – install MRtrix3.")
         sys.exit(1)
 
     SC = compute_connectome(
-        args.tck, args.parc, args.out,
+        args.tck,
+        args.parc,
+        args.out,
         weights_path=args.weights,
         dry_run=args.dry_run,
     )

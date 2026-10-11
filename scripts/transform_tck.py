@@ -16,9 +16,8 @@ CAS Brain Mechanics MRI — Finse 2026
 """
 
 import sys
-import struct
+
 import numpy as np
-import math
 
 
 def read_mrtrix_transform(path):
@@ -27,7 +26,7 @@ def read_mrtrix_transform(path):
     with open(path) as f:
         for line in f:
             line = line.strip()
-            if not line or line.startswith('#'):
+            if not line or line.startswith("#"):
                 continue
             vals = line.split()
             try:
@@ -64,20 +63,20 @@ def main():
 
     # Read .tck file
     print(f"  Reading tractogram: {input_tck}")
-    with open(input_tck, 'rb') as f:
+    with open(input_tck, "rb") as f:
         # Read header
         header_bytes = bytearray()
         while True:
             line = f.readline()
             header_bytes.extend(line)
-            if line.strip() == b'END':
+            if line.strip() == b"END":
                 break
 
         # Parse data offset
         offset = None
-        for line in header_bytes.decode('latin-1').split('\n'):
+        for line in header_bytes.decode("latin-1").split("\n"):
             line = line.strip()
-            if line.startswith('file:'):
+            if line.startswith("file:"):
                 parts = line.split()
                 offset = int(parts[-1])
                 break
@@ -90,7 +89,7 @@ def main():
         data = f.read()
 
     # Parse as float32 triplets
-    floats = np.frombuffer(data, dtype='<f4').copy()
+    floats = np.frombuffer(data, dtype="<f4").copy()
     coords = floats.reshape(-1, 3)
 
     print(f"  Total coordinate triplets: {len(coords)}")
@@ -117,19 +116,19 @@ def main():
 
     # Write output .tck
     print(f"  Writing: {output_tck}")
-    with open(output_tck, 'wb') as f:
+    with open(output_tck, "wb") as f:
         f.write(bytes(header_bytes))
 
         # Pad to offset
         current_pos = f.tell()
         if current_pos < offset:
-            f.write(b'\x00' * (offset - current_pos))
+            f.write(b"\x00" * (offset - current_pos))
 
         # Write transformed data
-        f.write(coords.astype('<f4').tobytes())
+        f.write(coords.astype("<f4").tobytes())
 
     print(f"  Done — {n_streamlines} streamlines, {n_vertices} vertices transformed")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
