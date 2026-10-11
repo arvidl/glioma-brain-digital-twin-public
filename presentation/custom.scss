@@ -1,0 +1,61 @@
+/*-- scss:defaults --*/
+$font-family-sans-serif: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$presentation-font-size-root: 34px;
+$presentation-heading-font-weight: 600;
+$presentation-heading-color: #1f3a5f;
+$link-color: #1565c0;
+$body-color: #222;
+
+/*-- scss:rules --*/
+.reveal h1 { font-size: 2.1em; }
+.reveal h2 { font-size: 1.45em; border-bottom: 3px solid #e3eaf3; padding-bottom: 0.15em; }
+.reveal h3 { font-size: 1.05em; color: #1f3a5f; }
+.reveal .slides section { text-align: left; }
+.reveal .footer { font-size: 0.45em; color: #777; }
+.reveal .slide-logo { max-height: 2.2rem !important; }
+
+.reveal .small { font-size: 0.72em; }
+.reveal .smaller { font-size: 0.6em; }
+.reveal .muted { color: #666; }
+.reveal .cite { font-size: 0.5em; color: #666; }
+
+.reveal .question {
+  font-size: 0.6em; letter-spacing: 0.04em; text-transform: uppercase;
+  color: #5c7a99; margin-bottom: 0.2em;
+}
+
+.reveal .callout-box {
+  border-left: 6px solid #1f3a5f; background: #f3f6fa;
+  padding: 0.5em 0.8em; border-radius: 4px; margin: 0.5em 0;
+}
+.reveal .clinic {
+  border-left: 6px solid #2e7d32; background: #eef6ee;
+  padding: 0.45em 0.8em; border-radius: 4px; margin: 0.4em 0; font-size: 0.78em;
+}
+.reveal .caveat {
+  border-left: 6px solid #e65100; background: #fff4e5;
+  padding: 0.45em 0.8em; border-radius: 4px; margin: 0.4em 0; font-size: 0.78em;
+}
+.reveal .evidence {
+  border-left: 6px solid #1565c0; background: #eaf2fd;
+  padding: 0.45em 0.8em; border-radius: 4px; margin: 0.4em 0; font-size: 0.78em;
+}
+
+.reveal table { font-size: 0.62em; }
+.reveal table th { background: #eef2f7; }
+
+.reveal abbr[title] { text-decoration: underline dotted #1565c0; cursor: help; }
+
+.reveal iframe.interactive {
+  width: 100%; height: 680px; border: none; background: white;
+}
+.reveal iframe.interactive-tall { width: 100%; height: 740px; border: none; }
+
+.reveal video.clip { width: 100%; max-height: 640px; background: black; border-radius: 6px; }
+
+.reveal .agenda ol { font-size: 0.72em; line-height: 1.5; }
+.reveal .agenda li.current { color: #1565c0; font-weight: 700; }
+.reveal .agenda li.done { color: #9aa7b5; }
+
+.reveal .bigstat { font-size: 2.2em; font-weight: 700; color: #1f3a5f; line-height: 1; }
+.reveal .statlabel { font-size: 0.55em; color: #555; }

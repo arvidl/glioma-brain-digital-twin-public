@@ -19,6 +19,10 @@ Contribution by Arvid Lundervold, BSc, MD, PhD  (co-developed with Cursor 2.5.26
 > **Not for clinical use.** This software is not a medical device and must not
 > be used for diagnosis, prognosis, or treatment decisions.
 
+**Interactive presentation** for clinicians, clinical neuroscientists and
+neuropsychologists: <https://arvidl.github.io/glioma-brain-digital-twin-public/>
+(source in [`presentation/`](presentation/)).
+
 ---
 
 ## Table of Contents

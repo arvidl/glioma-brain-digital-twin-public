@@ -1,0 +1,7 @@
+Metric,Domain,Pre-op,Post-op,Delta,%Delta,Improved,Direction,Observed change (%)
+MOT latency (ms),Motor,817.8,844.5,26.700000000000045,3.2648569332355155,False,lower_better,-3.2648569332355155
+RTI simple RT (ms),Processing speed,403.78,345.5555555556,-58.22444444439998,-14.419843589182223,True,lower_better,14.419843589182223
+RTI 5-choice RT (ms),Attention / speed,361.5,327.0,-34.5,-9.54356846473029,True,lower_better,9.54356846473029
+RVP A' (signal det),Sustained attention,0.95,0.9523552615,0.0023552615000000943,0.24792226315790467,True,higher_better,0.24792226315790467
+SOC min-move solved,Executive function,8.0,8.0,0.0,0.0,False,higher_better,0.0
+SSP span length,Working memory,6.0,7.0,1.0,16.666666666666668,True,higher_better,16.666666666666668

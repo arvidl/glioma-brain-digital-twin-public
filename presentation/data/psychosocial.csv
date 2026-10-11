@@ -1,0 +1,6 @@
+Measure,Pre-op,Post-op,Threshold,Meaning
+STAI anxiety,36.0,30.0,40.0,higher = more anxious
+PSWQ worry,54.0,61.0,62.0,higher = more worry
+ERQ reappraisal,24.0,14.0,,higher = more adaptive coping
+ERQ suppression,17.0,19.0,,higher = more suppression
+UCLA loneliness,40.0,50.0,40.0,higher = lonelier

@@ -1,0 +1,34 @@
+project:
+  type: default
+  output-dir: _site
+  render:
+    - index.qmd
+  resources:
+    - assets/**
+    - data/**
+
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    slide-number: c/t
+    show-slide-number: all
+    hash: true
+    history: true
+    controls: true
+    controls-layout: bottom-right
+    progress: true
+    menu:
+      side: left
+      numbers: true
+    chalkboard: false
+    preview-links: auto
+    width: 1600
+    height: 900
+    margin: 0.06
+    transition: fade
+    transition-speed: fast
+    center: false
+    footer: "Glioma Brain Digital Twin · single-patient proof-of-concept · not for clinical use"
+    logo: assets/img/logo_twin.svg
+    pdf-separate-fragments: false
+    code-copy: false
