@@ -32,3 +32,6 @@ format:
     logo: assets/img/logo_twin.svg
     pdf-separate-fragments: false
     code-copy: false
+    html-math-method:
+      method: mathjax
+      url: assets/vendor/mathjax/tex-mml-svg.js
